@@ -1,0 +1,62 @@
+# Dependencias
+node_modules
+*/node_modules
+
+# Archivos de git
+.git
+.gitignore
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de entorno local (mantén .env.example si existe)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Directorios de construcción/build
+dist
+build
+*/dist
+*/build
+
+# Archivos de documentación
+README.md
+CHANGELOG.md
+docs
+
+# Archivos de configuración de desarrollo
+.vscode
+.idea
+.editorconfig
+.eslintignore
+.eslintcache
+.eslintrc
+.babelrc
+jest.config.js
+*.test.js
+*.spec.js
+coverage
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Otros archivos que no necesitas en Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Archivos temporales
+.tmp
+.temp
+
+# Caché
+.npm
+.yarn-cache
