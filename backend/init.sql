@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users
 (
-    id            int PRIMARY KEY,
+    id            SERIAL PRIMARY KEY,
     username      VARCHAR(30)  NOT NULL,
     password_hash VARCHAR(30)  NOT NULL,
     email         VARCHAR(100) NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS roles
 (
-    id          int PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     name        VARCHAR(20)  NOT NULL,
     description VARCHAR(100) NOT NULL
 );
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS role_permissions
 
 CREATE TABLE IF NOT EXISTS categories
 (
-    id          int PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     parent_id   INT,
     name        VARCHAR(50)  NOT NULL,
     description VARCHAR(100) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS categories
 
 CREATE TABLE IF NOT EXISTS products
 (
-    id          int PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     category_id INT            NOT NULL,
     name        VARCHAR(50)    NOT NULL,
     description VARCHAR(100)   NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS products
 
 CREATE TABLE IF NOT EXISTS warehouses
 (
-    id            int PRIMARY KEY,
+    id            SERIAL PRIMARY KEY,
     supervisor_id INT          NOT NULL,
     name          VARCHAR(20)  NOT NULL,
     location      VARCHAR(100) NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS warehouse_inventory
 
 CREATE TABLE IF NOT EXISTS services
 (
-    id          int PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     name        VARCHAR(30)  NOT NULL,
     description VARCHAR(100) NOT NULL
 );
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS service_detail
 
 CREATE TABLE IF NOT EXISTS orders
 (
-    id         int PRIMARY KEY,
+    id         SERIAL PRIMARY KEY,
     user_id    INT            NOT NULL,
     doc_type   int            NOT NULL,
     total      DECIMAL(10, 2) NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS order_detail
 
 CREATE TABLE IF NOT EXISTS document_type
 (
-    id          int PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     name        VARCHAR(30)  NOT NULL,
     description VARCHAR(100) NOT NULL
 );
