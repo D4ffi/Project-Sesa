@@ -62,6 +62,17 @@ CREATE TABLE IF NOT EXISTS products
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS product_images
+(
+    id         SERIAL PRIMARY KEY,
+    product_id INT            NOT NULL,
+    url        VARCHAR(255)   NOT NULL,
+    is_primary BOOLEAN        DEFAULT FALSE,
+    alt_text   VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS warehouses
 (
     id            SERIAL PRIMARY KEY,
