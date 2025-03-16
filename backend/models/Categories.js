@@ -21,19 +21,24 @@ const Categories = {
         return result.rows[0];
     },
 
-    //todo: implement update, delete and filterByCategory methods
-
-    update: async (id, data) => {
-
+    update: async (data) => {
+        const { id,parent_id,name,description,created_at } = data;
+        const result = await db.query(
+            'UPDATE categories SET parent_id = $1, name = $2, description = $3, created_at = $4 WHERE id = $5 RETURNING *',
+            [parent_id, name, description, created_at, id]
+        );
+        return result.rows[0];
     },
 
     delete: async (id) => {
-
+        const result = await db.query('DELETE FROM categories WHERE id = $1 RETURNING *', [id]);
+        return result.rows[0];
     },
 
-    filterByCategory: async (categoryId) => {
-
-    },
+    filternbyCateogryId: async (id) => {
+        const result = await db.query('SELECT * FROM categories WHERE parent_id = $1', [id]);
+        return result.rows;
+    }
 }
 
 module.exports = Categories;

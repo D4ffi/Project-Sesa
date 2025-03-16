@@ -15,7 +15,7 @@ const Products = {
     create: async (data) => {
         const { id, category_id, name, description, price, sku, created_at } = data;
         const result = await db.query(
-            'INSERT INTO products (id,category_id, name, description, price, sku, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            'INSERT INTO products (id,category_id, name, description, price, sku, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
             [id,category_id, name, description, price, sku, created_at]
         );
         return result.rows[0];
