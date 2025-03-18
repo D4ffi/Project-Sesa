@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Frontend service
+  # Frontend service with TypeScript
   frontend:
     build: ./frontend
     ports:
@@ -9,10 +9,15 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      # Exclude the dist folder from the volume mount to avoid build conflicts
+      - /app/dist
     depends_on:
       - backend
     environment:
       - VITE_API_URL=http://localhost:3000/api
+      - NODE_ENV=development
+    # Make sure the container restarts if it crashes
+    restart: unless-stopped
 
   # Backend service (includes API)
   backend:
@@ -28,6 +33,7 @@ services:
       - DATABASE_URL=postgres://postgres:password@db:5432/sesa
       - NODE_ENV=development
       - PORT=3000
+    restart: unless-stopped
 
   # Database service
   db:
@@ -36,7 +42,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-        # This line maps your init.sql to the initialization directory
+      # This line maps your init.sql to the initialization directory
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_PASSWORD=password
