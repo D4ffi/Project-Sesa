@@ -35,3 +35,5 @@ const Products = {
         return result.rows[0];
     },
 }
+
+module.exports = Products;

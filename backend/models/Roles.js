@@ -30,3 +30,5 @@ const Roles = {
     }
 
 }
+
+module.exports = Roles;

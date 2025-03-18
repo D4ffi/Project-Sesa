@@ -32,3 +32,5 @@ const Orders  = {
     }
 
 }
+
+module.exports = Orders;

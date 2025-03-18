@@ -30,3 +30,5 @@ const DocumentType = {
     },
 
 }
+
+module.exports = DocumentType;
