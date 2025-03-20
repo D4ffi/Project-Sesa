@@ -22,7 +22,8 @@ const Navbar = () => {
             <nav className="bg-gray-300 px-4 py-3 flex items-center justify-between">
                 {/* Left section - Logo */}
                 <div className="flex pl-6">
-                    <Menu size={24} className="text-[#364153] hover:text-[#ff6900] transition-colors duration-300"/>
+                    <Menu size={24} className="text-[#364153]
+                     hover:text-[#ff6900] transition-colors duration-300 cursor-pointer"/>
                 </div>
 
                 {/* Middle section - Search bar */}
