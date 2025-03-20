@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from "./Button.tsx";
 // import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
@@ -7,7 +8,7 @@ const HeroSection: React.FC = () => {
             <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{
-                    backgroundImage: 'url(/src/assets/hero-bg.webp)',
+                    backgroundImage: 'url(/assets/Hero2.jpg)',
                     opacity: 1,
                 }}
             ></div>
@@ -15,18 +16,19 @@ const HeroSection: React.FC = () => {
             {/* Contenido alineado a la izquierda */}
             <div className="absolute inset-0 flex items-center">
                 <div className="text-left px-8 md:px-16 lg:px-24 max-w-screen-lg">
-                    <h1 className="text-white text-4xl md:text-5xl font-bold mb-4 text-left">
+                    <h1 className="text-gray-700 text-4xl md:text-5xl font-bold mb-4 text-left">
                         Sesa te hace
-                        <span className="text-orange-500 font-semibold"> resaltar </span>
+                        <span className="text-orange-500 font-bold"> resaltar </span>
                     </h1>
 
-                    <h2 className="text-white text-xl md:text-2xl mb-6 text-left">
+                    <h2 className="text-gray-700 text-xl font-semibold md:text-2xl mb-6 text-left">
                         Cada producto es tratado con
-                        <span className="text-orange-500 font-semibold"> cariño </span>
+                        <span className="text-orange-500 font-bold"> cariño </span>
                         para que tengas
-                        <span className="text-orange-500 font-semibold"> diseños únicos</span>
+                        <span className="text-orange-500 font-bold"> diseños únicos</span>
                     </h2>
 
+                    <Button />
                     {/* <Link
                         to="/products"
                         className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300"
@@ -37,6 +39,6 @@ const HeroSection: React.FC = () => {
             </div>
         </div>
     );
-};
+}
 
 export default HeroSection;

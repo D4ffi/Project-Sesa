@@ -1,5 +1,13 @@
 import { useState } from 'react';
 import './NavBar.css'
+import { Menu, Search} from "lucide-react";
+
+{/* Para usar los iconos, primero tienes
+    que importarlos asi como en la linea 3
+    busca lucide icons para que veas todos
+    y se usan y se personalizan asi como en
+    la linea 25 y 44                        */}
+
 
 const Navbar = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -10,12 +18,11 @@ const Navbar = () => {
     };
 
     return (
-        <div className="w-full">
-            <nav className="bg-gray-800 px-4 py-3 flex items-center justify-between">
+        <div className="w-full items-center">
+            <nav className="bg-gray-300 px-4 py-3 flex items-center justify-between">
                 {/* Left section - Logo */}
-                <div className="flex-none">
-                    {/* Burger menu would go here */}
-                    <div className="text-white font-bold text-xl">SESA</div>
+                <div className="flex pl-6">
+                    <Menu size={24} className="text-[#364153] hover:text-[#ff6900] transition-colors duration-300"/>
                 </div>
 
                 {/* Middle section - Search bar */}
@@ -27,37 +34,24 @@ const Navbar = () => {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search"
-                                className="w-full bg-gray-700 text-white placeholder-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-gray-200 text-gray-700 placeholder-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500"
                             />
                             <button
                                 type="submit"
                                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                             >
-                                <svg
-                                    className="h-5 w-5 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                    />
-                                </svg>
+                                <Search size={20} className="text-gray-700 hover:text-[#ff6900] transition-colors duration-300"/>
+
                             </button>
                         </div>
                     </form>
                 </div>
 
                 {/* Right section - Nav items */}
-                <div className="flex-none">
-                    <ul className="flex space-x-4 text-white">
-                        <li className="cursor-pointer hover:text-blue-300">Products</li>
-                        <li className="cursor-pointer hover:text-blue-300">Contact</li>
-                    </ul>
+                <div className="flex items-center space-x-2 pr-6">
+                    <div className="text-orange-500 font-bold text-xl">SESA</div>
+                    <img src="/assets/sesa_logo.svg" alt="SESA Logo" className="h-5 w-5 mr-2" />
+                    <div className="text-gray-700 font-bold text-xl">PROMO</div>
                 </div>
             </nav>
         </div>
