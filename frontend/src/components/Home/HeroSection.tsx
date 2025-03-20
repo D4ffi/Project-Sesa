@@ -3,16 +3,14 @@ import React from 'react';
 
 const HeroSection: React.FC = () => {
     return (
-        <div
-            className="w-full h-[40rem] relative"
-            style={{
-                backgroundImage: 'url(/src/assets/hero-bg.webp)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                opacity: 0.6
-            }}
-
-        >
+        <div className="w-full h-[51rem] relative">
+            <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                    backgroundImage: 'url(/src/assets/hero-bg.webp)',
+                    opacity: 1,
+                }}
+            ></div>
 
             {/* Contenido alineado a la izquierda */}
             <div className="absolute inset-0 flex items-center">

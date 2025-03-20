@@ -9,7 +9,7 @@ function Home() {
       <>
           <Navbar/>
           <HeroSection/>
-          <div className="flex justify-center">
+          <div className="flex p-20 justify-between">
                 <Card/>
                 <Card/>
                 <Card/>
