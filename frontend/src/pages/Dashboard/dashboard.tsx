@@ -1,275 +1,151 @@
-<html>
-<head>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <script>
-        function toggleDarkMode() {
-        document.documentElement.classList.toggle('dark');
-    }
-    </script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 font-sans">
-<div class="flex h-screen">
-    <!-- Sidebar -->
-    <div class="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700">
-        <div class="flex items-center justify-center h-16 border-b dark:border-gray-700">
-            <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Sesa Promo
+import React, { useState } from 'react';
+import './dashboardp.css';
+import { CircleUserRound,ChartNoAxesCombined, Search, BellRing, BookOpenText } from "lucide-react";
+
+// Definición de tipos
+interface SessionData {
+    source: string;
+    sessions: number;
+    change: string;
+}
+
+interface ChatUser {
+    name: string;
+    email: string;
+}
+
+const App: React.FC = () => {
+    // Datos de ejemplo (estos serían reemplazados por datos reales)
+    const [sessionData, setSessionData] = useState<SessionData[]>([
+        { source: 'website.net', sessions: 4321, change: '+84%' },
+        { source: 'website.net', sessions: 4033, change: '-8%' },
+        { source: 'website.net', sessions: 3128, change: '+2%' },
+        { source: 'website.net', sessions: 2104, change: '+33%' },
+        { source: 'website.net', sessions: 2003, change: '+30%' },
+        { source: 'website.net', sessions: 1894, change: '+15%' },
+        { source: 'website.net', sessions: 405, change: '-12%' },
+    ]);
+
+    const [chatUsers, setChatUsers] = useState<ChatUser[]>([
+        { name: 'Helena', email: 'email@figmasfakedomain.net' },
+        { name: 'Oscar', email: 'email@figmasfakedomain.net' },
+        { name: 'Daniel', email: 'email@figmasfakedomain.net' },
+        { name: 'Daniel Jay Park', email: 'email@figmasfakedomain.net' },
+        { name: 'Mark Rojas', email: 'email@figmasfakedomain.net' },
+    ]);
+
+    return (
+        <div className="app-container">
+            <div className="sidebar">
+                {/* Aquí irá el logo de la empresa */}
+                <div className="logo-container">
+                    <div className="logo">
+                        {/* Logo se agregará aquí */}
+                    </div>
+                    <span>Sesa Promo</span>
+                </div>
+
+                <div className="sidebar-section">
+                    <h3>Discover</h3>
+                    <div className="sidebar-item active">
+                        <BookOpenText size={20} color={"#444444"}/>
+                        <span>Resumen</span>
+                    </div>
+                    <div className="sidebar-item">
+                        <ChartNoAxesCombined size={24} color="#444444"/>
+                        <span>Estadísticas</span>
+                    </div>
+                </div>
+                {/* Logo de usuario */}
+                <div className="sidebar-footer">
+                    <div className="sidebar-item">
+                        <CircleUserRound size={24} color="#444444" />
+                        <span>Admin</span>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="p-4">
-            <ul>
-                <li class="mb-4">
-                    <a class="flex items-center text-gray-700 dark:text-gray-300" href="#">
-                        <i class="fas fa-home mr-3">
-                        </i>
-                        <span>
-         Resumen
-        </span>
-                    </a>
-                </li>
-                <li>
-                    <a class="flex items-center text-gray-700 dark:text-gray-300" href="#">
-                        <i class="fas fa-chart-line mr-3">
-                        </i>
-                        <span>
-         Estadísticas
-        </span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="absolute bottom-0 p-4">
-            <div class="flex items-center text-gray-700 dark:text-gray-300">
-                <i class="fas fa-user mr-3">
-                </i>
-                <span>
-       Admin
-      </span>
-            </div>
-        </div>
-    </div>
-    <!-- Main Content -->
-    <div class="flex-1 p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                ¡Buenos días!
-            </h1>
-            <div class="relative">
-                <input class="border rounded-full py-2 px-4 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" placeholder="Buscar..." type="text"/>
-                <i class="fas fa-bell absolute right-0 top-0 mt-2 mr-4 text-gray-500 dark:text-gray-400">
-                </i>
-            </div>
-            <button class="ml-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-full" onclick="toggleDarkMode()">
-                <i class="fas fa-moon text-gray-700 dark:text-gray-300">
-                </i>
-            </button>
-        </div>
-        <div class="mb-6">
-     <span class="text-gray-600 dark:text-gray-400">
-      Lo que está pasando:
-     </span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h2 class="text-gray-600 dark:text-gray-400">
-                    Ganancias
-                </h2>
-                <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    $45,678.90
-                </p>
-                <p class="text-green-500">
-                    +20% más que el mes pasado
-                </p>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h2 class="text-gray-600 dark:text-gray-400">
-                    Stock
-                </h2>
-                <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    2,405
-                </p>
-                <p class="text-green-500">
-                    +33% más que el mes pasado
-                </p>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h2 class="text-gray-600 dark:text-gray-400">
-                    Ventas totales
-                </h2>
-                <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    10,353
-                </p>
-                <p class="text-red-500">
-                    -8% menos que el mes pasado
-                </p>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h2 class="text-gray-600 dark:text-gray-400 mb-4">
-                    Promedio de ventas
-                </h2>
-                <table class="w-full">
-                    <thead>
-                    <tr>
-                        <th class="text-left text-gray-600 dark:text-gray-400">
-                            Fuente
-                        </th>
-                        <th class="text-left text-gray-600 dark:text-gray-400">
-                            Sesiones
-                        </th>
-                        <th class="text-left text-gray-600 dark:text-gray-400">
-                            Cambio
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            4321
-                        </td>
-                        <td class="text-green-500">
-                            +84%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            4033
-                        </td>
-                        <td class="text-red-500">
-                            -8%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            3128
-                        </td>
-                        <td class="text-green-500">
-                            +2%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            2104
-                        </td>
-                        <td class="text-green-500">
-                            +33%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            2003
-                        </td>
-                        <td class="text-green-500">
-                            +30%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            1894
-                        </td>
-                        <td class="text-green-500">
-                            +15%
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            website.net
-                        </td>
-                        <td class="text-gray-900 dark:text-gray-100">
-                            405
-                        </td>
-                        <td class="text-red-500">
-                            -12%
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <h2 class="text-gray-600 dark:text-gray-400 mb-4">
-                    Chats recientes
-                </h2>
-                <ul>
-                    <li class="flex items-center mb-4">
-                        <img alt="Profile picture of Helena" class="w-10 h-10 rounded-full mr-4" src="https://placehold.co/40x40"/>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-gray-100">
-                                Helena
-                            </p>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                email@figmasfakedomain.net
-                            </p>
+
+            <div className="main-content">
+                <div className="header">
+                    <div className="search-bar">
+                        <Search  size={20} color={"#444444"}/>
+                        <input type="text" placeholder="Buscar..." />
+                    </div>
+                    <div className="notifications">
+                        <BellRing size={20} color={"#444444"}/>
+                    </div>
+                </div>
+
+                <div className="greeting-section">
+                    <h1>¡Buenos días!</h1>
+                    <p>Lo que está pasando:</p>
+                </div>
+
+                <div className="stats-cards">
+                    <div className="stat-card">
+                        <h3>Ganancias</h3>
+                        <h2>$0</h2>
+                        <p className="increase">+20% más que el mes pasado</p>
+                    </div>
+
+                    <div className="stat-card">
+                        <h3>Stock</h3>
+                        <h2>0</h2>
+                        <p className="increase">+33% más que el mes pasado</p>
+                    </div>
+
+                    <div className="stat-card">
+                        <h3>Ventas totales</h3>
+                        <h2>0</h2>
+                        <p className="decrease">-8% menos que el mes pasado</p>
+                    </div>
+                </div>
+
+                <div className="dashboard-sections">
+                    <div className="sessions-section">
+                        <h3>Promedio de ventas</h3>
+                        <table className="sessions-table">
+                            <thead>
+                            <tr>
+                                <th>Fuente</th>
+                                <th>Sesiones</th>
+                                <th>Cambio</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {sessionData.map((item, index) => (
+                                <tr key={index}>
+                                    <td>{item.source}</td>
+                                    <td>{item.sessions}</td>
+                                    <td className={item.change.includes('+') ? 'increase' : 'decrease'}>
+                                        {item.change}
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="chats-section">
+                        <h3>Chats recientes</h3>
+                        <div className="chat-list">
+                            {chatUsers.map((user, index) => (
+                                <div className="chat-item" key={index}>
+                                    <div className="user-avatar">
+                                        {/* Avatar del usuario se agregará aquí */}
+                                    </div>
+                                    <div className="user-info">
+                                        <h4>{user.name}</h4>
+                                        <p>{user.email}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    </li>
-                    <li class="flex items-center mb-4">
-                        <img alt="Profile picture of Oscar" class="w-10 h-10 rounded-full mr-4" src="https://placehold.co/40x40"/>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-gray-100">
-                                Oscar
-                            </p>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                email@figmasfakedomain.net
-                            </p>
-                        </div>
-                    </li>
-                    <li class="flex items-center mb-4">
-                        <img alt="Profile picture of Daniel" class="w-10 h-10 rounded-full mr-4" src="https://placehold.co/40x40"/>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-gray-100">
-                                Daniel
-                            </p>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                email@figmasfakedomain.net
-                            </p>
-                        </div>
-                    </li>
-                    <li class="flex items-center mb-4">
-                        <img alt="Profile picture of Daniel Jay Park" class="w-10 h-10 rounded-full mr-4" src="https://placehold.co/40x40"/>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-gray-100">
-                                Daniel Jay Park
-                            </p>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                email@figmasfakedomain.net
-                            </p>
-                        </div>
-                    </li>
-                    <li class="flex items-center mb-4">
-                        <img alt="Profile picture of Mark Rojas" class="w-10 h-10 rounded-full mr-4" src="https://placehold.co/40x40"/>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-gray-100">
-                                Mark Rojas
-                            </p>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                email@figmasfakedomain.net
-                            </p>
-                        </div>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-</body>
-</html>
+    );
+};
+
+export default App;
