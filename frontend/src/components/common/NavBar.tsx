@@ -41,7 +41,7 @@ const Navbar = () => {
                                 type="submit"
                                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                             >
-                                <Search size={20} className="text-gray-700 hover:text-[#ff6900] transition-colors duration-300"/>
+                                <Search size={20} className="text-gray-700 hover:text-[#ff6900] cursor-pointer transition-colors duration-300"/>
 
                             </button>
                         </div>
