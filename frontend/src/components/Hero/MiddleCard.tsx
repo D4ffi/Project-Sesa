@@ -11,8 +11,8 @@ const MiddleCard: React.FC<{
     paragraph3?: string;
 
 }> = ({
-          gradientFrom = "from-pink-500",
-          gradientTo = "to-pink-600",
+          gradientFrom = "from-pink-600",
+          gradientTo = "to-pink-700",
           textColor = "text-white",
           title = "Conoce nuestras impresiones de alta calidad",
           paragraph1 = "Escoge el paquete que mas se adecue a ti",
@@ -22,7 +22,7 @@ const MiddleCard: React.FC<{
     return (
         <div>
             {/* Right Section */}
-            <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-1 shadow-lg shadow-neutral-900
+            <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
             transform transition-transform duration-300 hover:scale-105`}>
                 <h1 className="text-2xl font-bold mb-4">
                     {title}

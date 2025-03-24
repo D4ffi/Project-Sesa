@@ -12,13 +12,14 @@ function Home() {
             <title>Sesa | Home</title>
             <Navbar/>
             <HeroSection/>
-            <div className="flex pt-20 pl-40 pr-40 pb-40 justify-between">
+            <div className="flex pt-20 pl-40 pr-40 pb-40 ">
                 <LeftCard
-                gradientFrom="from-blue-500"
-                gradientTo="to-blue-600"
+                gradientFrom="from-blue-600"
+                gradientTo="to-blue-700"
                 title={"Todo para tu negocio"}
                 paragraph1={"tenemos a tu disposición desde ropa"}
                 paragraph2={"articulos de oficina, tazas, bolsas y más"}/>
+
                 <MiddleCard/>
                 <MoreInfoCard
                     gradientFrom={"from-purple-500"}

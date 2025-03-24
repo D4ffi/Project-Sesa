@@ -21,7 +21,7 @@ const LeftCard: React.FC<{
     return (
         <div>
             {/* Right Section */}
-            <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-1 shadow-lg shadow-neutral-900
+            <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
             transform transition-transform duration-300 hover:scale-105`}>
                 <h1 className="text-2xl font-bold mb-4">
                     {title}
