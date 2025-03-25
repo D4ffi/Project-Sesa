@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 
 const MoreInfoCard: React.FC<{
     gradientFrom?: string;
@@ -17,11 +17,21 @@ const MoreInfoCard: React.FC<{
           paragraph1 = "Escoge el paquete que mas se adecue a ti",
           paragraph2 = "Impresiones para compañias",
       }) => {
+
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        navigate('/contact');
+    };
+
     return (
         <div>
             {/* Right Section */}
-            <div className={`group cursor-pointer bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
-            transform transition-transform duration-300 hover:scale-105`}>
+            <div
+                className={`group cursor-pointer bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
+                transform transition-transform duration-300 hover:scale-105`}
+                onClick={handleClick}
+            >
                 <h1 className="text-2xl font-bold mb-4">
                     {title}
                 </h1>
