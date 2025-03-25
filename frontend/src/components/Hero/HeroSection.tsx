@@ -1,6 +1,5 @@
 import React from 'react';
 import Button from "./Button.tsx";
-// import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
     return (
@@ -28,13 +27,7 @@ const HeroSection: React.FC = () => {
                         <span className="text-orange-500 font-bold"> diseños únicos</span>
                     </h2>
 
-                    <Button />
-                    {/* <Link
-                        to="/products"
-                        className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300"
-                    >
-                        Ver Productos
-                    </Link> */}
+                    <Button to="/products" text="Ver Productos" />
                 </div>
             </div>
         </div>
