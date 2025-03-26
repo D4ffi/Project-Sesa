@@ -71,6 +71,61 @@ function Home() {
                     </div>
                 </div>
             </section>
+
+            <section>
+
+            <footer className="bg-gray-400 text-black py-8 px-6">
+                <div className="container mx-auto">
+                    {/* Sección superior con logo y navegación */}
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+                        {/* Logo */}
+                        <div className="mb-4 md:mb-0">
+                            <img src="/assets/sesa_logo.svg" alt="SESA Logo" className="w-8 h-8" />
+                        </div>
+
+                        {/* Enlaces de navegación */}
+                        <div className="flex space-x-6 text-sm text-black">
+                            <a href="#" className="hover:text-black transition-colors">Work</a>
+                            <a href="#" className="hover:text-black transition-colors">About</a>
+                            <a href="#" className="hover:text-black transition-colors">Careers</a>
+                            <a href="#" className="hover:text-black transition-colors">Contact</a>
+                        </div>
+                    </div>
+
+                    {/* Sección inferior con copyright y redes sociales */}
+                    <div className="flex flex-col md:flex-row items-center justify-between pt-4 border-t border-gray-400">
+                        {/* Copyright */}
+                        <div className="text-sm text-black mb-4 md:mb-0">
+                            Sesa Promo 2025. Todos los derechos reservados a Sesa Promo S.A. de C.V.
+                        </div>
+
+                        {/* Iconos de redes sociales */}
+                        <div className="flex space-x-4">
+                            {/* Aquí puedes importar los iconos que necesites */}
+                            <a href="#" className="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                                {/* Ícono placeholder */}
+                                <span className="text-xs">FB</span>
+                            </a>
+                            <a href="#" className="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                                <span className="text-xs">TW</span>
+                            </a>
+                            <a href="#" className="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                                <span className="text-xs">IG</span>
+                            </a>
+                            <a href="#" className="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                                <span className="text-xs">LI</span>
+                            </a>
+                            <a href="#" className="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                                <span className="text-xs">FB</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+
+
+            </section>
         </Layout>
     )
 }
