@@ -3,16 +3,18 @@ import Button from "./Button.tsx";
 
 const HeroSection: React.FC = () => {
     return (
-        <div className="w-full h-[51rem] relative">
+        <div className="w-full h-screen relative">
+            {/* Background image with full viewport height */}
             <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{
                     backgroundImage: 'url(/assets/Hero2.jpg)',
-                    opacity: 1,
+                    height: '100vh',
+                    width: '100%',
                 }}
             ></div>
 
-            {/* Contenido alineado a la izquierda */}
+            {/* Content aligned to the left */}
             <div className="absolute inset-0 flex items-center">
                 <div className="text-left px-8 md:px-16 lg:px-24 max-w-screen-lg">
                     <h1 className="text-gray-700 text-4xl md:text-5xl font-bold mb-4 text-left">

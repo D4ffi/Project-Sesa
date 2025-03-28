@@ -28,7 +28,7 @@ const MoreInfoCard: React.FC<{
         <div>
             {/* Right Section */}
             <div
-                className={`group cursor-pointer bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
+                className={`group cursor-pointer bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 shadow-lg shadow-neutral-900
                 transform transition-transform duration-300 hover:scale-105`}
                 onClick={handleClick}
             >

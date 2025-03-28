@@ -1,5 +1,6 @@
 import {LucideHouse, LucideX, LucideShoppingBag, LucideMailSearch, LucideInfo, LucideShapes} from "lucide-react";
 import MenuButton from "./MenuButton.tsx";
+import { useNavigate } from "react-router-dom";
 
 interface SideBarProps {
     onClose: () => void;
@@ -8,6 +9,33 @@ interface SideBarProps {
 }
 
 const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
+    const navigate = useNavigate();
+
+    const handleHomeClick = () => {
+        // Close the sidebar
+        onClose();
+
+        // Check if we're already on the home page
+        if (window.location.pathname === "/") {
+            // If we're on the home page, just scroll to top with smooth behavior
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        } else {
+            // If we're on another page, navigate to home first
+            navigate("/");
+
+            // Then scroll to top after a small delay to ensure navigation completes
+            setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }, 100);
+        }
+    };
+
     return (
         <div
             className={`bg-gray-300 flex flex-col h-full w-64 transform transition-transform duration-300 ease-in-out ${
@@ -25,7 +53,7 @@ const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
 
             {/* Main content area - using flex-grow to take available space */}
             <div className="flex-grow flex flex-col items-center justify-center space-y-4 p-4">
-                <div onClick={onClose}>
+                <div onClick={handleHomeClick}>
                     <MenuButton name="Home" icon={LucideHouse} to="/" />
                 </div>
                 <div onClick={onClose}>

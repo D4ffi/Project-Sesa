@@ -20,8 +20,7 @@ const LeftCard: React.FC<{
       }) => {
     return (
         <div>
-            {/* Right Section */}
-            <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 m-4 shadow-lg shadow-neutral-900
+            <div className={` bg-gradient-to-r ${gradientFrom} ${gradientTo} ${textColor} rounded-lg p-6 shadow-lg
             transform transition-transform duration-300 hover:scale-105`}>
                 <h1 className="text-2xl font-bold mb-4">
                     {title}
@@ -32,14 +31,19 @@ const LeftCard: React.FC<{
                 <p className="mb-2">
                     {paragraph2}
                 </p>
-                <p className="mb-4">
-                    {paragraph3}
-                </p>
+                {paragraph3 && (
+                    <p className="mb-4">
+                        {paragraph3}
+                    </p>
+                )}
 
-                <div className={'flex justify-center pt-4'}>
-                    <img src="/assets/hero-bg-3.avif" alt="Descripción de la imagen" className="h-50 w-80 rounded-lg mb-4"/>
+                <div className="flex justify-center pt-4">
+                    <img
+                        src="/assets/hero-bg-3.avif"
+                        alt="Productos promocionales"
+                        className="w-full h-auto rounded-lg mb-4 object-cover"
+                    />
                 </div>
-
             </div>
         </div>
     );

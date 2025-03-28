@@ -53,8 +53,8 @@ const AboutCarousel = () => {
     }, [isTransitioning]);
 
     return (
-        <div className="relative w-140 h-140 shadow-lg">
-            {/* Contenedor principal del carrusel - cuadrado fijo de 384x384px */}
+        <div className="w-full max-w-md mx-auto aspect-square">
+            {/* Contenedor principal del carrusel - aspecto cuadrado responsivo */}
             <div className="relative w-full h-full overflow-hidden rounded-lg shadow-lg">
                 {/* Contenedor de imágenes con posición absoluta para cada imagen */}
                 <div className="relative w-full h-full">
@@ -78,8 +78,8 @@ const AboutCarousel = () => {
                 <button
                     onClick={prevImage}
                     disabled={isTransitioning}
-                    className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-all z-30 ${
-                        isTransitioning ? 'cursor-not-allowed opacity-50' : ''
+                    className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-all z-30 cursor-pointer ${
+                        isTransitioning ? 'opacity-50' : ''
                     }`}
                     aria-label="Imagen anterior"
                 >
@@ -89,8 +89,8 @@ const AboutCarousel = () => {
                 <button
                     onClick={nextImage}
                     disabled={isTransitioning}
-                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-all z-30 ${
-                        isTransitioning ? 'cursor-not-allowed opacity-50' : ''
+                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-all z-30 cursor-pointer ${
+                        isTransitioning ? 'opacity-50' : ''
                     }`}
                     aria-label="Imagen siguiente"
                 >
