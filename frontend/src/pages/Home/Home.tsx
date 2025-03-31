@@ -78,12 +78,12 @@ function Home() {
                                 <AboutCarousel/>
                             </div>
                             <div className="w-full md:w-3/5 pt-4 md:pt-10 text-gray-500">
-                                <h2 className="text-2xl font-bold">Lorem Ipsum</h2>
+                                <h2 className="text-2xl font-bold">¿ Por qué Nosotros ?</h2>
                                 <p className="pt-4">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vitae quam imperdiet, porttitor mi ac, tempus dui. Suspendisse et mi eu felis ullamcorper convallis ac ut orci. Mauris malesuada felis in risus eleifend lacinia. Sed nec gravida libero. Morbi est leo, elementum at erat sed, facilisis porttitor nisl. Fusce luctus pharetra aliquam. Nam commodo elit non feugiat porta.
+                                    Somos una empresa cuya misión es brindar a nuestros clientes una amplia gama de productos promocionales de alta calidad. Nos especializamos en la personalización de artículos promocionales, desde ropa hasta artículos de oficina, tazas y bolsas. Nuestro objetivo es ayudar a las empresas a destacar su marca y aumentar su visibilidad a través de productos únicos y atractivos.
                                 </p>
                                 <p className="pt-4">
-                                    Vestibulum dignissim arcu quis nisi aliquet, at blandit tortor pellentesque. Nunc id enim at nisi euismod lacinia. Nam velit massa, semper sit amet nisi ut, dictum pellentesque libero. Morbi feugiat consectetur sollicitudin. Etiam augue ante, euismod et nulla vitae, pharetra cursus odio. Ut iaculis odio erat, vulputate vulputate tortor vulputate nec.
+                                    Si no eres una empresa, no te preocupes, también tenemos productos para ti. Desde ropa personalizada hasta artículos de oficina, tazas y bolsas, tenemos algo para todos. Nos enorgullece ofrecer productos de alta calidad a precios competitivos, y nuestro equipo está siempre disponible para ayudarte a encontrar el producto perfecto para tus necesidades.
                                 </p>
                             </div>
                         </div>
