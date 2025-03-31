@@ -13,10 +13,9 @@ const Services: React.FC = () => {
                         <div className="mb-4">
                             <Palette size={40} className="text-orange-500" />
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-700 mb-2">Diseño Personalizado</h2>
+                        <h2 className="text-xl font-semibold text-gray-700 mb-2">Serigrafia</h2>
                         <p className="text-gray-600">
-                            Nuestro equipo de diseñadores trabajará contigo para crear diseños únicos y personalizados
-                            que representen la identidad de tu empresa o evento.
+                            es una técnica de impresión que consiste en transferir tinta a través de una malla tensada en un marco, donde las áreas bloqueadas no permiten el paso de la tinta, mientras que las áreas abiertas sí.
                         </p>
                     </div>
 
@@ -24,10 +23,9 @@ const Services: React.FC = () => {
                         <div className="mb-4">
                             <Package size={40} className="text-orange-500" />
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-700 mb-2">Productos de Calidad</h2>
+                        <h2 className="text-xl font-semibold text-gray-700 mb-2">Sublimación</h2>
                         <p className="text-gray-600">
-                            Trabajamos con los mejores materiales y procesos de producción para garantizar
-                            que tus productos promocionales sean duraderos y de alta calidad.
+                            es una técnica de impresión en la que se transfieren imágenes digitales a objetos mediante calor y presión.
                         </p>
                     </div>
 
