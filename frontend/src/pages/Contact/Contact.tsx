@@ -1,6 +1,6 @@
 import React from 'react';
 import Layout from '../../components/common/Layout.tsx';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 
 const Contact: React.FC = () => {
     return (
@@ -53,24 +53,26 @@ const Contact: React.FC = () => {
                         <h2 className="text-2xl font-semibold text-gray-700 mb-4">Información de contacto</h2>
                         <div className="space-y-4">
                             <div className="flex items-start">
+                                {/*
                                 <MapPin className="text-orange-500 mr-3 mt-1" />
                                 <div>
                                     <h3 className="font-semibold">Dirección</h3>
                                     <p className="text-gray-600">Av. Constitución 123, Centro, Monterrey, N.L., México</p>
                                 </div>
+                                */}
                             </div>
                             <div className="flex items-start">
                                 <Phone className="text-orange-500 mr-3 mt-1" />
                                 <div>
                                     <h3 className="font-semibold">Teléfono</h3>
-                                    <p className="text-gray-600">+52 (81) 1234-5678</p>
+                                    <p className="text-gray-600">+52 (81) 1916-9348</p>
                                 </div>
                             </div>
                             <div className="flex items-start">
                                 <Mail className="text-orange-500 mr-3 mt-1" />
                                 <div>
                                     <h3 className="font-semibold">Correo electrónico</h3>
-                                    <p className="text-gray-600">info@sesapromocionales.com</p>
+                                    <p className="text-gray-600">dl_lore@hotmail.com</p>
                                 </div>
                             </div>
                         </div>

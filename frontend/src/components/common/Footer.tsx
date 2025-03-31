@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
+import { Mail, Phone} from 'lucide-react';
 
 const Footer: React.FC = () => {
     return (
@@ -57,28 +57,33 @@ const Footer: React.FC = () => {
                     <div>
                         <h3 className="text-lg font-bold mb-4 border-b border-gray-700 pb-2">Contacto</h3>
                         <ul className="space-y-3">
-                            <li className="flex items-start">
+
+                            {/*
+                             <li className="flex items-start">
                                 <MapPin className="text-orange-500 mr-2 mt-1 flex-shrink-0" size={18} />
                                 <span className="text-gray-300">
                   Av. Example #123, Col. Centro, Monterrey, NL, México
                 </span>
                             </li>
+                             */}
+
+
                             <li className="flex items-center">
                                 <Phone className="text-orange-500 mr-2 flex-shrink-0" size={18} />
                                 <a href="tel:+528112345678" className="text-gray-300 hover:text-orange-500 transition-colors">
-                                    (81) 1234-5678
+                                    (81) 19169348
                                 </a>
                             </li>
                             <li className="flex items-center">
                                 <Mail className="text-orange-500 mr-2 flex-shrink-0" size={18} />
                                 <a href="mailto:contacto@sesapromo.com" className="text-gray-300 hover:text-orange-500 transition-colors">
-                                    contacto@sesapromo.com
+                                    dl_lore@hotmail.com
                                 </a>
                             </li>
                         </ul>
                     </div>
 
-                    {/* Social media and newsletter */}
+                    {/*
                     <div>
                         <h3 className="text-lg font-bold mb-4 border-b border-gray-700 pb-2">Síguenos</h3>
                         <div className="flex space-x-4 mb-6">
@@ -93,7 +98,10 @@ const Footer: React.FC = () => {
                             </a>
                         </div>
                     </div>
+                    */}
                 </div>
+
+
 
                 {/* Copyright */}
                 <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400">
