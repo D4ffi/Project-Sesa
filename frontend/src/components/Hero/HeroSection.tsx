@@ -29,7 +29,7 @@ const HeroSection: React.FC = () => {
                         <span className="text-orange-500 font-bold"> diseños únicos</span>
                     </h2>
 
-                    <Button to="/products" text="Ver Productos" />
+                    <Button to="/disable" text="Ver Productos" />
                 </div>
             </div>
         </div>
