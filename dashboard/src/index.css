@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+@theme {
+  --color-cream: #FFFCF2;
+  --color-cream-mid: #CCC5B9;
+  --color-brown: #403D39;
+  --color-dark-brown: #252422;
+  --color-orange-500: #EB5E28;
+}
+
+:root {
+
+}
+
