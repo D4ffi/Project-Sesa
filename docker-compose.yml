@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # Frontend service with TypeScript
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      # Exclude the dist folder from the volume mount to avoid build conflicts
-      - /app/dist
-    depends_on:
-      - backend
-    environment:
-      - VITE_API_URL=http://localhost:3000/api
-      - NODE_ENV=development
-    # Make sure the container restarts if it crashes
-    restart: unless-stopped
-
   # Backend service (includes API)
   backend:
     build: ./backend
