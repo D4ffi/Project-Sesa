@@ -6,18 +6,36 @@ import Products from "./pages/Products/Products.tsx";
 import Services from "./pages/Services/Services.tsx";
 import ErrorPage from "./pages/Disable/Disable.tsx";
 import SignInPage from "./pages/SignIn/SignInPage.tsx";
+import { AuthProvider } from './context/AuthContext';
+import Callback from './pages/Auth/Callback';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-      <BrowserRouter>
-          <Routes>
-              <Route path="/" element={<SignInPage />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/disable" element={<ErrorPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-      </BrowserRouter>
-  </StrictMode>,
+    <StrictMode>
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<SignInPage />} />
+                    <Route path="/products" element={
+                        <ProtectedRoute>
+                            <Products />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/services" element={
+                        <ProtectedRoute>
+                            <Services />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/contact" element={
+                        <ProtectedRoute>
+                            <Contact />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/disable" element={<ErrorPage />} />
+                    <Route path="/auth/callback" element={<Callback />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    </StrictMode>,
 )

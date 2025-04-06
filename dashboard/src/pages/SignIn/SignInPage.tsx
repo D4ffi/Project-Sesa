@@ -1,9 +1,35 @@
+// En tu SignInPage.tsx
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SignInCard from "../../components/SignIn/MainCard.tsx";
 import sesaLogoImg from '../../../public/assets/sesa_logo.svg';
 import SesaBackground from '../../components/SignIn/SesaLogo.tsx';
+import { useAuth } from '../../context/AuthContext';
 import '../../index.css'
 
 const SignInPage = () => {
+    const { user, loading } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Si el usuario ya está autenticado, redirigir a productos
+        if (user && !loading) {
+            navigate('/products');
+        }
+    }, [user, loading, navigate]);
+
+    // Si está cargando, mostrar pantalla de carga
+    if (loading) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center bg-cream">
+                <div className="text-center">
+                    <h2 className="text-xl font-bold text-dark-brown mb-2">Cargando</h2>
+                    <p className="text-gray-600">Por favor espera un momento...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="h-screen w-screen overflow-hidden relative flex flex-col">
             {/* Header con logo */}
