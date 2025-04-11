@@ -9,6 +9,7 @@ import SignInPage from "./pages/SignIn/SignInPage.tsx";
 import { AuthProvider } from './context/AuthContext';
 import Callback from './pages/Auth/Callback';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import Dashboard from "./pages/Dashboard/Dashboard.tsx";
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -16,6 +17,11 @@ createRoot(document.getElementById('root')!).render(
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<SignInPage />} />
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/products" element={
                         <ProtectedRoute>
                             <Products />

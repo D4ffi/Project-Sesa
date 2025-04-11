@@ -14,7 +14,7 @@ const SignInPage = () => {
     useEffect(() => {
         // Si el usuario ya está autenticado, redirigir a productos
         if (user && !loading) {
-            navigate('/products');
+            navigate('/dashboard');
         }
     }, [user, loading, navigate]);
 
