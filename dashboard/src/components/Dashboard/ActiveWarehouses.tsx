@@ -2,6 +2,7 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import { useWarehousesQuery } from '../../hooks/useDataQueries';
+import {getTimeAgo} from "../../utils/dateUtils.ts";
 
 const ActiveWarehousesCard: React.FC = () => {
     const { data, isLoading, error, dataUpdatedAt } = useWarehousesQuery();
@@ -13,7 +14,7 @@ const ActiveWarehousesCard: React.FC = () => {
         : 0;
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-5 flex flex-col">
+        <div className="bg-white rounded-lg shadow-md p-5 flex flex-col h-auto min-h-[200px]">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-gray-600 text-sm font-medium">Bodegas Activas</h3>
                 <div className="bg-purple-100 p-2 rounded-full">
@@ -42,11 +43,11 @@ const ActiveWarehousesCard: React.FC = () => {
                         </span>
                     </div>
 
-                    {dataUpdatedAt && (
-                        <div className="text-xs text-gray-400 mt-3">
-                            Actualizado: {new Date(dataUpdatedAt).toLocaleTimeString()}
-                        </div>
-                    )}
+                    <div className="text-xs text-gray-400 mt-3">
+                        {dataUpdatedAt
+                            ? `Actualizado ${getTimeAgo(dataUpdatedAt)}`
+                            : "Sin información de actualización"}
+                    </div>
                 </>
             )}
         </div>

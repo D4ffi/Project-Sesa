@@ -2,13 +2,14 @@
 import React from 'react';
 import { Package } from 'lucide-react';
 import { useTotalProductsQuery } from '../../hooks/useDataQueries';
+import {getTimeAgo} from "../../utils/dateUtils.ts";
 
 const TotalProductsCard: React.FC = () => {
     const { data, isLoading, error, dataUpdatedAt } = useTotalProductsQuery();
     const { totalProducts = 0, percentChange = 0 } = data || {};
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-5 flex flex-col">
+        <div className="bg-white rounded-lg shadow-md p-5 flex flex-col h-auto min-h-[200px]">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-gray-600 text-sm font-medium">Total de Productos</h3>
                 <div className="bg-green-100 p-2 rounded-full">
@@ -38,11 +39,11 @@ const TotalProductsCard: React.FC = () => {
                         <span className="text-xs text-gray-500 ml-1">vs mes anterior</span>
                     </div>
 
-                    {dataUpdatedAt && (
-                        <div className="text-xs text-gray-400 mt-3">
-                            Actualizado: {new Date(dataUpdatedAt).toLocaleTimeString()}
-                        </div>
-                    )}
+                    <div className="text-xs text-gray-400 mt-3">
+                        {dataUpdatedAt
+                            ? `Actualizado ${getTimeAgo(dataUpdatedAt)}`
+                            : "Sin información de actualización"}
+                    </div>
                 </>
             )}
         </div>
