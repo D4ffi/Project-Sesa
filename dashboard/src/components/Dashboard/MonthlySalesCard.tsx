@@ -1,83 +1,11 @@
 // dashboard/src/components/Dashboard/MonthlySalesCard.tsx
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import React from 'react';
 import { DollarSign } from 'lucide-react';
+import { useMonthlySalesQuery } from '../../hooks/useDataQueries';
 
-// Separate hook for data fetching logic
-const useMonthlySales = () => {
-    const [monthlySales, setMonthlySales] = useState<number>(0);
-    const [percentChange, setPercentChange] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchMonthlySales = async () => {
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            // Get current month's data
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-
-            // Calculate first and last day of current month
-            const firstDayCurrentMonth = new Date(currentYear, currentMonth, 1).toISOString();
-            const lastDayCurrentMonth = new Date(currentYear, currentMonth + 1, 0).toISOString();
-
-            // Calculate first and last day of previous month
-            const firstDayPreviousMonth = new Date(currentYear, currentMonth - 1, 1).toISOString();
-            const lastDayPreviousMonth = new Date(currentYear, currentMonth, 0).toISOString();
-
-            // Fetch current month's sales
-            const { data: currentMonthData, error: currentError } = await supabase
-                .from('orders')
-                .select('total')
-                .gte('created_at', firstDayCurrentMonth)
-                .lte('created_at', lastDayCurrentMonth);
-
-            // Fetch previous month's sales
-            const { data: previousMonthData, error: previousError } = await supabase
-                .from('orders')
-                .select('total')
-                .gte('created_at', firstDayPreviousMonth)
-                .lte('created_at', lastDayPreviousMonth);
-
-            if (currentError || previousError) {
-                throw currentError || previousError;
-            }
-
-            // Calculate totals
-            const currentMonthTotal = currentMonthData?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-            const previousMonthTotal = previousMonthData?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-
-            setMonthlySales(currentMonthTotal);
-
-            // Calculate percent change
-            if (previousMonthTotal > 0) {
-                const change = ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
-                setPercentChange(Math.round(change));
-            }
-
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                console.error('Error fetching monthly sales:', error);
-                setError(error.message || 'Error fetching sales data');
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchMonthlySales();
-    }, []);
-
-    return { monthlySales, percentChange, isLoading, error, refetch: fetchMonthlySales };
-};
-
-// UI Component separated from data fetching logic
 const MonthlySalesCard: React.FC = () => {
-    const { monthlySales, percentChange, isLoading, error } = useMonthlySales();
+    const { data, isLoading, error, dataUpdatedAt } = useMonthlySalesQuery();
+    const { monthlySales = 0, percentChange = 0 } = data || {};
 
     return (
         <div className="bg-white rounded-lg shadow-md p-5 flex flex-col">
@@ -88,9 +16,9 @@ const MonthlySalesCard: React.FC = () => {
                 </div>
             </div>
 
-            {error && (
+            {error instanceof Error && (
                 <div className="text-red-500 text-sm my-2">
-                    {error}
+                    {error.message || 'Error al cargar datos'}
                 </div>
             )}
 
@@ -104,11 +32,17 @@ const MonthlySalesCard: React.FC = () => {
                     </div>
 
                     <div className="mt-3 flex items-center">
-            <span className={`text-xs font-medium ${percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {percentChange >= 0 ? '+' : ''}{percentChange}%
-            </span>
+                        <span className={`text-xs font-medium ${percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {percentChange >= 0 ? '+' : ''}{percentChange}%
+                        </span>
                         <span className="text-xs text-gray-500 ml-1">vs mes anterior</span>
                     </div>
+
+                    {dataUpdatedAt && (
+                        <div className="text-xs text-gray-400 mt-3">
+                            Actualizado: {new Date(dataUpdatedAt).toLocaleTimeString()}
+                        </div>
+                    )}
                 </>
             )}
         </div>
