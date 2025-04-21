@@ -9,6 +9,7 @@ import Callback from './pages/Auth/Callback';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import Dashboard from "./pages/Dashboard/Dashboard.tsx";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ProductDashboard from "./pages/Product/ProductDashboard.tsx";
 
 // Crear una instancia de QueryClient con opciones predeterminadas
 const queryClient = new QueryClient({
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')!).render(
                                 <Dashboard />
                             </ProtectedRoute>
                         } />
+                        <Route path="/product" element={<ProductDashboard />} />
                         <Route path="/disable" element={<ErrorPage />} />
                         <Route path="/auth/callback" element={<Callback />} />
                         <Route path="*" element={<Navigate to="/" replace />} />

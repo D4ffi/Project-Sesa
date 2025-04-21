@@ -1,4 +1,4 @@
-import {LucideHouse, LucideX, LucideShoppingBag, LucideMailSearch, LucideInfo, LucideShapes, LucideLogOut} from "lucide-react";
+import {LucideHouse, LucideX, LucideShoppingBag, LucideInfo, LucideShapes, LucideLogOut} from "lucide-react";
 import MenuButton from "./MenuButton.tsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.tsx"; // Asegúrate de que la ruta sea correcta
@@ -66,28 +66,23 @@ const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
                     <MenuButton name="Home" icon={LucideHouse} to="/" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Products" icon={LucideShoppingBag} to="/disable" />
+                    <MenuButton name="Productos" icon={LucideShoppingBag} to="/product" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Services" icon={LucideShapes} to="/services" />
+                    <MenuButton name="Categorías" icon={LucideShapes} to="/services" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="About us" icon={LucideInfo} to="/#about-us" />
+                    <MenuButton name="Bodegas" icon={LucideInfo} to="/#about-us" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Contact" icon={LucideMailSearch} to="/contact" />
+                    <button
+                        onClick={handleSignOut}
+                        className="group flex items-center space-x-2 bg-orange-500 p-2 rounded w-40 hover:bg-orange-700 transition-colors duration-300 cursor-pointer"
+                    >
+                        <LucideLogOut className="mr-2" size={18} />
+                        Cerrar Sesión
+                    </button>
                 </div>
-            </div>
-
-            {/* Logout button */}
-            <div className="p-4">
-                <button
-                    onClick={handleSignOut}
-                    className="flex items-center justify-center w-full py-2 px-4 bg-orange-500 hover:bg-orange-700 text-white rounded-md transition-colors duration-300"
-                >
-                    <LucideLogOut className="mr-2" size={18} />
-                    Cerrar Sesión
-                </button>
             </div>
 
             {/* Footer */}
