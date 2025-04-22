@@ -40,16 +40,10 @@ const ProductTable: React.FC = () => {
             // Create a query that joins the categories table to get category names
             const { data, error } = await supabase
                 .from('products')
-                .select(`
-          id,
-          created_at,
-          category_id,
-          name,
-          description,
-          price,
-          sku,
-          categories(name)
-        `);
+                .select('*');
+
+            console.log('Categories data:', data);
+            console.log('Error if any:', error);
 
             if (error) throw error;
 

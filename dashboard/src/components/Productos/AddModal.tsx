@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Info } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient'; // Adjust path as needed
 
 interface ProductModalProps {
@@ -11,6 +11,7 @@ interface ProductModalProps {
 interface Category {
     id: number;
     name: string;
+    description?: string;
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -33,29 +34,62 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Display info about selected category
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [showCategoryInfo, setShowCategoryInfo] = useState(false);
+
     // Fetch categories on component mount
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                setLoading(true);
                 const { data, error } = await supabase
                     .from('categories')
-                    .select('id, name');
+                    .select('id, name, description')
+                    .order('name', { ascending: true });
 
                 if (error) throw error;
 
                 setCategories(data || []);
             } catch (err) {
                 console.error('Error fetching categories:', err);
-                setError('Failed to load categories');
+                setError('Error al cargar categorías. Por favor, intente nuevamente.');
+            } finally {
+                setLoading(false);
             }
         };
 
         if (isOpen) fetchCategories();
     }, [isOpen]);
 
+    // Update selected category when category_id changes
+    useEffect(() => {
+        if (formData.category_id) {
+            const categoryId = parseInt(formData.category_id);
+            const category = categories.find(cat => cat.id === categoryId) || null;
+            setSelectedCategory(category);
+        } else {
+            setSelectedCategory(null);
+        }
+    }, [formData.category_id, categories]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Directly set category ID (can be used for manual entry or from a different interface)
+    const setDirectCategoryId = (id: number) => {
+        if (id && !isNaN(id)) {
+            // Check if the category exists
+            const categoryExists = categories.some(cat => cat.id === id);
+
+            if (categoryExists) {
+                setFormData(prev => ({ ...prev, category_id: id.toString() }));
+            } else {
+                setError(`La categoría con ID ${id} no existe`);
+            }
+        }
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,25 +123,42 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         setImageAltTexts(newAltTexts);
     };
 
+    const validateForm = () => {
+        if (!formData.name.trim()) {
+            setError('El nombre del producto es obligatorio');
+            return false;
+        }
+
+        if (!formData.category_id) {
+            setError('Debe seleccionar una categoría');
+            return false;
+        }
+
+        if (!formData.price || parseFloat(formData.price) <= 0) {
+            setError('El precio debe ser mayor que cero');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
 
-        try {
-            // Validate form data
-            if (!formData.name || !formData.category_id || !formData.price) {
-                throw new Error('Por favor complete los campos obligatorios');
-            }
+        if (!validateForm()) return;
 
+        setLoading(true);
+
+        try {
             // Insert product
             const { data: productData, error: productError } = await supabase
                 .from('products')
                 .insert({
                     name: formData.name,
-                    description: formData.description,
+                    description: formData.description || null,
                     price: parseFloat(formData.price),
-                    sku: formData.sku,
+                    sku: formData.sku || null,
                     category_id: parseInt(formData.category_id),
                 })
                 .select('id')
@@ -155,7 +206,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                 }
             }
 
-            // Success!
+            // Reset form
             setFormData({
                 name: '',
                 description: '',
@@ -166,6 +217,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             setSelectedFiles([]);
             setImageAltTexts([]);
             setPrimaryImageIndex(0);
+
+            // Notify parent and close modal
             onSuccess();
             onClose();
 
@@ -218,24 +271,62 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                 />
                             </div>
 
+                            // In the Category selection section:
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
-                                    Categoría <span className="text-red-500">*</span>
+                                    ID de Categoría <span className="text-red-500">*</span>
                                 </label>
-                                <select
-                                    name="category_id"
+                                <input
+                                    type="number"
                                     value={formData.category_id}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Ingrese ID de categoría"
                                     required
-                                >
-                                    <option value="">Seleccionar categoría</option>
-                                    {categories.map(category => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                />
+
+                                <div className="mt-4">
+                                    <label className="block text-gray-700 text-sm font-medium mb-1">
+                                        O selecciona de la lista (opcional)
+                                    </label>
+                                    <div className="flex items-center space-x-2">
+                                        <select
+                                            name="category_id"
+                                            value={formData.category_id}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        >
+                                            <option value="">Seleccionar categoría</option>
+                                            {categories.map(category => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name} (ID: {category.id})
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        {formData.category_id && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCategoryInfo(!showCategoryInfo)}
+                                                className="p-2 text-blue-500 hover:text-blue-700 focus:outline-none"
+                                            >
+                                                <Info size={20} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Category info display */}
+                                {showCategoryInfo && selectedCategory && (
+                                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                        <h4 className="font-semibold text-sm text-blue-800">Detalles de la categoría</h4>
+                                        <p className="text-sm text-blue-700">ID: {selectedCategory.id}</p>
+                                        <p className="text-sm text-blue-700">Nombre: {selectedCategory.name}</p>
+                                        {selectedCategory.description && (
+                                            <p className="text-sm text-blue-700">Descripción: {selectedCategory.description}</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div>
