@@ -1,129 +1,115 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient.ts';
-import EditProductModal from "./EditModal.tsx";
+import EditCategoryModal from "./EditCategoryModal.tsx";
 
-// Product type based on your database schema
-type Product = {
+// Category type based on your database schema
+type Category = {
     id: number;
     created_at: string;
-    category_id: number;
     name: string;
     description: string;
-    price: number;
-    sku: string;
-    category_name?: string; // For display purposes, joined from categories table
 };
 
 type SortDirection = 'asc' | 'desc';
-type SortField = keyof Product | null;
+type SortField = keyof Category | null;
 
-const ProductTable: React.FC = () => {
-    const [products, setProducts] = useState<Product[]>([]);
+const CategoryTable: React.FC = () => {
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [sortField, setSortField] = useState<SortField>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Fetch products on component mount
+    // Fetch categories on component mount
     useEffect(() => {
-        fetchProducts();
+        fetchCategories();
     }, []);
 
-    const fetchProducts = async () => {
+    const fetchCategories = async () => {
         try {
             setLoading(true);
 
-            // Modificar la consulta para incluir el join con categorías
             const { data, error } = await supabase
-                .from('products')
-                .select(`
-                *,
-                categories:category_id(id, name)
-            `);
+                .from('categories')
+                .select('*');
 
             if (error) throw error;
 
-            // Transformar los datos para incluir el nombre de la categoría
-            const formattedData = data.map(product => ({
-                ...product,
-                category_name: product.categories ? product.categories.name : 'Sin categoría'
-            }));
-
-            setProducts(formattedData);
+            setCategories(data || []);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error al cargar productos');
-            console.error('Error fetching products:', err);
+            setError(err instanceof Error ? err.message : 'Error al cargar categorías');
+            console.error('Error fetching categories:', err);
         } finally {
             setLoading(false);
         }
     };
 
     // Handle row selection
-    const toggleProductSelection = (productId: number) => {
-        setSelectedProductIds(prevSelected => {
-            if (prevSelected.includes(productId)) {
-                return prevSelected.filter(id => id !== productId);
+    const toggleCategorySelection = (categoryId: number) => {
+        setSelectedCategoryIds(prevSelected => {
+            if (prevSelected.includes(categoryId)) {
+                return prevSelected.filter(id => id !== categoryId);
             } else {
-                return [...prevSelected, productId];
+                return [...prevSelected, categoryId];
             }
         });
     };
 
     // Handle select all
     const toggleSelectAll = () => {
-        if (selectedProductIds.length === products.length) {
-            setSelectedProductIds([]);
+        if (selectedCategoryIds.length === categories.length) {
+            setSelectedCategoryIds([]);
         } else {
-            setSelectedProductIds(products.map(product => product.id));
+            setSelectedCategoryIds(categories.map(category => category.id));
         }
     };
 
-    // Delete selected products
+    // Delete selected categories
     const handleDeleteSelected = async () => {
-        if (selectedProductIds.length === 0) return;
+        if (selectedCategoryIds.length === 0) return;
 
-        if (window.confirm(`¿Está seguro de eliminar ${selectedProductIds.length} producto(s)?`)) {
+        if (window.confirm(`¿Está seguro de eliminar ${selectedCategoryIds.length} categoría(s)?`)) {
             try {
                 const { error } = await supabase
-                    .from('products')
+                    .from('categories')
                     .delete()
-                    .in('id', selectedProductIds);
+                    .in('id', selectedCategoryIds);
 
                 if (error) throw error;
 
-                // Refresh product list
-                fetchProducts();
+                // Refresh category list
+                fetchCategories();
                 // Clear selection
-                setSelectedProductIds([]);
+                setSelectedCategoryIds([]);
             } catch (err) {
-                console.error('Error deleting products:', err);
-                setError(err instanceof Error ? err.message : 'Error al eliminar productos');
+                console.error('Error deleting categories:', err);
+                setError(err instanceof Error ? err.message : 'Error al eliminar categorías');
             }
         }
     };
 
-    // Edit a product
-    const handleEditProduct = (product: Product) => {
-        setEditingProduct(product);
+    // Edit a category
+    const handleEditCategory = (category: Category) => {
+        setEditingCategory(category);
     };
 
     // Close edit modal
     const handleCloseEditModal = () => {
-        setEditingProduct(null);
+        setEditingCategory(null);
     };
 
     // Handle successful edit
-    const handleProductUpdated = () => {
-        fetchProducts();
-        setEditingProduct(null);
+    const handleCategoryUpdated = () => {
+        fetchCategories();
+        setEditingCategory(null);
     };
 
     // Handle sorting
-    const handleSort = (field: keyof Product) => {
+    const handleSort = (field: keyof Category) => {
         if (sortField === field) {
             // Toggle direction if same field
             setSortDirection(prevDirection => prevDirection === 'asc' ? 'desc' : 'asc');
@@ -135,35 +121,32 @@ const ProductTable: React.FC = () => {
     };
 
     // Apply sorting and filtering
-    const getSortedAndFilteredProducts = () => {
+    const getSortedAndFilteredCategories = () => {
         // First apply search filter
-        let filteredProducts = products;
+        let filteredCategories = categories;
 
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
-            filteredProducts = products.filter(product =>
-                product.name.toLowerCase().includes(term) ||
-                product.description.toLowerCase().includes(term) ||
-                product.sku.toLowerCase().includes(term)
+            filteredCategories = categories.filter(category =>
+                category.name.toLowerCase().includes(term) ||
+                (category.description && category.description.toLowerCase().includes(term))
             );
         }
 
         // Then apply sorting
         if (sortField) {
-            return [...filteredProducts].sort((a, b) => {
-                if (sortField && a[sortField] !== undefined && b[sortField] !== undefined) {
-                    if (a[sortField] < b[sortField]) {
-                        return sortDirection === 'asc' ? -1 : 1;
-                    }
-                    if (a[sortField] > b[sortField]) {
-                        return sortDirection === 'asc' ? 1 : -1;
-                    }
+            return [...filteredCategories].sort((a, b) => {
+                if (a[sortField] < b[sortField]) {
+                    return sortDirection === 'asc' ? -1 : 1;
+                }
+                if (a[sortField] > b[sortField]) {
+                    return sortDirection === 'asc' ? 1 : -1;
                 }
                 return 0;
             });
         }
 
-        return filteredProducts;
+        return filteredCategories;
     };
 
     // Format date for display
@@ -175,16 +158,8 @@ const ProductTable: React.FC = () => {
         });
     };
 
-    // Format price for display
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('es-MX', {
-            style: 'currency',
-            currency: 'MXN'
-        }).format(price);
-    };
-
     // Render sort indicator
-    const renderSortIndicator = (field: keyof Product) => {
+    const renderSortIndicator = (field: keyof Category) => {
         if (sortField !== field) return null;
 
         return sortDirection === 'asc'
@@ -193,16 +168,12 @@ const ProductTable: React.FC = () => {
     };
 
     // Get display-friendly column names
-    const getColumnName = (field: keyof Product): string => {
-        const columnNames: Record<keyof Product, string> = {
+    const getColumnName = (field: keyof Category): string => {
+        const columnNames: Record<keyof Category, string> = {
             id: 'ID',
             created_at: 'Fecha de creación',
-            category_id: 'ID Categoría',
             name: 'Nombre',
             description: 'Descripción',
-            price: 'Precio',
-            sku: 'SKU',
-            category_name: 'Categoría'
         };
 
         return columnNames[field] || String(field);
@@ -214,7 +185,7 @@ const ProductTable: React.FC = () => {
                 <div className="flex items-center space-x-2">
                     <input
                         type="text"
-                        placeholder="Buscar productos..."
+                        placeholder="Buscar categorías..."
                         className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
@@ -222,21 +193,21 @@ const ProductTable: React.FC = () => {
                 </div>
 
                 <div className="flex space-x-2">
-                    {selectedProductIds.length === 1 && (
+                    {selectedCategoryIds.length === 1 && (
                         <button
-                            onClick={() => handleEditProduct(products.find(p => p.id === selectedProductIds[0])!)}
+                            onClick={() => handleEditCategory(categories.find(c => c.id === selectedCategoryIds[0])!)}
                             className="flex items-center bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 transition-colors"
                         >
                             <Edit size={16} className="mr-1" /> Editar
                         </button>
                     )}
 
-                    {selectedProductIds.length > 0 && (
+                    {selectedCategoryIds.length > 0 && (
                         <button
                             onClick={handleDeleteSelected}
                             className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors"
                         >
-                            <Trash2 size={16} className="mr-1" /> Eliminar ({selectedProductIds.length})
+                            <Trash2 size={16} className="mr-1" /> Eliminar ({selectedCategoryIds.length})
                         </button>
                     )}
                 </div>
@@ -257,7 +228,7 @@ const ProductTable: React.FC = () => {
                         <tr>
                             <th className="w-10 px-4 py-2">
                                 <button onClick={toggleSelectAll} className="focus:outline-none">
-                                    {selectedProductIds.length === products.length && products.length > 0 ? (
+                                    {selectedCategoryIds.length === categories.length && categories.length > 0 ? (
                                         <CheckSquare size={20} className="text-orange-500" />
                                     ) : (
                                         <Square size={20} className="text-gray-400" />
@@ -273,54 +244,45 @@ const ProductTable: React.FC = () => {
                             <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('description')}>
                                 {getColumnName('description')} {renderSortIndicator('description')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('price')}>
-                                {getColumnName('price')} {renderSortIndicator('price')}
-                            </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('sku')}>
-                                {getColumnName('sku')} {renderSortIndicator('sku')}
-                            </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('category_name')}>
-                                {getColumnName('category_name')} {renderSortIndicator('category_name')}
-                            </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('created_at')}>
                                 {getColumnName('created_at')} {renderSortIndicator('created_at')}
                             </th>
                         </tr>
                         </thead>
                         <tbody>
-                        {getSortedAndFilteredProducts().length === 0 ? (
+                        {getSortedAndFilteredCategories().length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                                    No se encontraron productos
+                                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                    No se encontraron categorías
                                 </td>
                             </tr>
                         ) : (
-                            getSortedAndFilteredProducts().map(product => (
+                            getSortedAndFilteredCategories().map(category => (
                                 <tr
-                                    key={product.id}
+                                    key={category.id}
                                     className={`border-t border-gray-200 hover:bg-gray-50 ${
-                                        selectedProductIds.includes(product.id) ? 'bg-orange-50' : ''
+                                        selectedCategoryIds.includes(category.id) ? 'bg-orange-50' : ''
                                     }`}
                                 >
                                     <td className="px-4 py-2 text-center">
                                         <button
-                                            onClick={() => toggleProductSelection(product.id)}
+                                            onClick={() => toggleCategorySelection(category.id)}
                                             className="focus:outline-none"
                                         >
-                                            {selectedProductIds.includes(product.id) ? (
+                                            {selectedCategoryIds.includes(category.id) ? (
                                                 <CheckSquare size={20} className="text-orange-500" />
                                             ) : (
                                                 <Square size={20} className="text-gray-400" />
                                             )}
                                         </button>
                                     </td>
-                                    <td className="px-4 py-2">{product.id}</td>
-                                    <td className="px-4 py-2 font-medium">{product.name}</td>
-                                    <td className="px-4 py-2 max-w-xs truncate">{product.description}</td>
-                                    <td className="px-4 py-2">{formatPrice(product.price)}</td>
-                                    <td className="px-4 py-2">{product.sku}</td>
-                                    <td className="px-4 py-2">{product.category_name}</td>
-                                    <td className="px-4 py-2">{formatDate(product.created_at)}</td>
+                                    <td className="px-4 py-2">{category.id}</td>
+                                    <td className="px-4 py-2 font-medium">{category.name}</td>
+                                    <td className="px-4 py-2 max-w-xs truncate">{category.description}</td>
+                                    <td className="px-4 py-2">{formatDate(category.created_at)}</td>
+                                    <td className="px-4 py-2">
+                                        {/* No actions in row - will handle via selection instead */}
+                                    </td>
                                 </tr>
                             ))
                         )}
@@ -330,16 +292,16 @@ const ProductTable: React.FC = () => {
             )}
 
             {/* Edit Modal */}
-            {editingProduct && (
-                <EditProductModal
-                    product={editingProduct}
-                    isOpen={!!editingProduct}
+            {editingCategory && (
+                <EditCategoryModal
+                    category={editingCategory}
+                    isOpen={!!editingCategory}
                     onClose={handleCloseEditModal}
-                    onSuccess={handleProductUpdated}
+                    onSuccess={handleCategoryUpdated}
                 />
             )}
         </div>
     );
 };
 
-export default ProductTable;
+export default CategoryTable;

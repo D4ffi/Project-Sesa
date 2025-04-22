@@ -78,20 +78,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Directly set category ID (can be used for manual entry or from a different interface)
-    const setDirectCategoryId = (id: number) => {
-        if (id && !isNaN(id)) {
-            // Check if the category exists
-            const categoryExists = categories.some(cat => cat.id === id);
-
-            if (categoryExists) {
-                setFormData(prev => ({ ...prev, category_id: id.toString() }));
-            } else {
-                setError(`La categoría con ID ${id} no existe`);
-            }
-        }
-    };
-
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const filesArray = Array.from(e.target.files);
@@ -271,63 +257,49 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                 />
                             </div>
 
-                            // In the Category selection section:
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
-                                    ID de Categoría <span className="text-red-500">*</span>
+                                    Categoría <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="number"
-                                    value={formData.category_id}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    placeholder="Ingrese ID de categoría"
-                                    required
-                                />
+                                <div className="flex items-center space-x-2">
+                                    <select
+                                        name="category_id"
+                                        value={formData.category_id}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        required
+                                    >
+                                        <option value="">Seleccionar categoría</option>
+                                        {categories.map(category => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name} (ID: {category.id})
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                <div className="mt-4">
-                                    <label className="block text-gray-700 text-sm font-medium mb-1">
-                                        O selecciona de la lista (opcional)
-                                    </label>
-                                    <div className="flex items-center space-x-2">
-                                        <select
-                                            name="category_id"
-                                            value={formData.category_id}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    {formData.category_id && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCategoryInfo(!showCategoryInfo)}
+                                            className="p-2 text-blue-500 hover:text-blue-700 focus:outline-none"
                                         >
-                                            <option value="">Seleccionar categoría</option>
-                                            {categories.map(category => (
-                                                <option key={category.id} value={category.id}>
-                                                    {category.name} (ID: {category.id})
-                                                </option>
-                                            ))}
-                                        </select>
-
-                                        {formData.category_id && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCategoryInfo(!showCategoryInfo)}
-                                                className="p-2 text-blue-500 hover:text-blue-700 focus:outline-none"
-                                            >
-                                                <Info size={20} />
-                                            </button>
-                                        )}
-                                    </div>
+                                            <Info size={20} />
+                                        </button>
+                                    )}
                                 </div>
-
-                                {/* Category info display */}
-                                {showCategoryInfo && selectedCategory && (
-                                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                        <h4 className="font-semibold text-sm text-blue-800">Detalles de la categoría</h4>
-                                        <p className="text-sm text-blue-700">ID: {selectedCategory.id}</p>
-                                        <p className="text-sm text-blue-700">Nombre: {selectedCategory.name}</p>
-                                        {selectedCategory.description && (
-                                            <p className="text-sm text-blue-700">Descripción: {selectedCategory.description}</p>
-                                        )}
-                                    </div>
-                                )}
                             </div>
+
+                            {/* Category info display */}
+                            {showCategoryInfo && selectedCategory && (
+                                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                    <h4 className="font-semibold text-sm text-blue-800">Detalles de la categoría</h4>
+                                    <p className="text-sm text-blue-700">ID: {selectedCategory.id}</p>
+                                    <p className="text-sm text-blue-700">Nombre: {selectedCategory.name}</p>
+                                    {selectedCategory.description && (
+                                        <p className="text-sm text-blue-700">Descripción: {selectedCategory.description}</p>
+                                    )}
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">

@@ -1,7 +1,7 @@
 import {LucideHouse, LucideX, LucideShoppingBag, LucideInfo, LucideShapes, LucideLogOut} from "lucide-react";
 import MenuButton from "./MenuButton.tsx";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.tsx"; // Asegúrate de que la ruta sea correcta
+import { useAuth } from "../../context/AuthContext.tsx";
 
 interface SideBarProps {
     onClose: () => void;
@@ -11,7 +11,7 @@ interface SideBarProps {
 
 const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
     const navigate = useNavigate();
-    const { signOut } = useAuth(); // Importa la función signOut del contexto de autenticación
+    const { signOut } = useAuth();
 
     const handleHomeClick = () => {
         // Close the sidebar
@@ -63,16 +63,16 @@ const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
             {/* Main content area - using flex-grow to take available space */}
             <div className="flex-grow flex flex-col items-center justify-center space-y-4 p-4">
                 <div onClick={handleHomeClick}>
-                    <MenuButton name="Home" icon={LucideHouse} to="/" />
+                    <MenuButton name="Inicio" icon={LucideHouse} to="/" />
                 </div>
                 <div onClick={onClose}>
                     <MenuButton name="Productos" icon={LucideShoppingBag} to="/product" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Categorías" icon={LucideShapes} to="/services" />
+                    <MenuButton name="Categorías" icon={LucideShapes} to="/categories" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Bodegas" icon={LucideInfo} to="/#about-us" />
+                    <MenuButton name="Bodegas" icon={LucideInfo} to="/warehouses" />
                 </div>
                 <div onClick={onClose}>
                     <button
