@@ -25,6 +25,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         price: '',
         sku: '',
         category_id: '',
+        dimensions: '',   // New field for dimensions
+        material: '',     // New field for material
     });
 
     // Images handling
@@ -196,12 +198,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             console.error('Error uploading images:', error);
 
             // Manejo específico de errores
-            // Manejo específico de errores
-                        if (error instanceof Error && error.name === 'AbortError') {
-                            throw new Error('La carga de imágenes ha excedido el tiempo máximo. Intenta con archivos más pequeños o menos archivos.');
-                        }
-
-                        throw error;
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw new Error('La carga de imágenes ha excedido el tiempo máximo. Intenta con archivos más pequeños o menos archivos.');
+            }
 
             throw error;
         }
@@ -226,6 +225,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                     price: parseFloat(formData.price),
                     sku: formData.sku || null,
                     category_id: parseInt(formData.category_id),
+                    dimensions: formData.dimensions || null,  // Include dimensions
+                    material: formData.material || null,      // Include material
                 })
                 .select('id')
                 .single();
@@ -269,6 +270,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                 price: '',
                 sku: '',
                 category_id: '',
+                dimensions: '',
+                material: '',
             });
             setSelectedFiles([]);
             setImageAltTexts([]);
@@ -400,6 +403,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                     name="sku"
                                     value={formData.sku}
                                     onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+
+                            {/* New field: Dimensions */}
+                            <div>
+                                <label className="block text-gray-700 text-sm font-medium mb-1">
+                                    Dimensiones
+                                </label>
+                                <input
+                                    type="text"
+                                    name="dimensions"
+                                    value={formData.dimensions}
+                                    onChange={handleInputChange}
+                                    placeholder="Ejemplo: 10x15x5 cm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+
+                            {/* New field: Material */}
+                            <div>
+                                <label className="block text-gray-700 text-sm font-medium mb-1">
+                                    Material
+                                </label>
+                                <input
+                                    type="text"
+                                    name="material"
+                                    value={formData.material}
+                                    onChange={handleInputChange}
+                                    placeholder="Ejemplo: Algodón, Cerámica, etc."
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                                 />
                             </div>

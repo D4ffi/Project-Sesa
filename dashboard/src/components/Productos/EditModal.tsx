@@ -12,6 +12,8 @@ type Product = {
     price: number;
     sku: string;
     category_name?: string;
+    dimensions?: string;  // Added dimensions field
+    material?: string;    // Added material field
 };
 
 // Category type for dropdown
@@ -39,7 +41,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         name: product.name,
         description: product.description,
         price: product.price,
-        sku: product.sku
+        sku: product.sku,
+        dimensions: product.dimensions || '',  // Initialize dimensions
+        material: product.material || ''       // Initialize material
     });
 
     const [categories, setCategories] = useState<Category[]>([]);
@@ -98,7 +102,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                     name: formData.name,
                     description: formData.description,
                     price: formData.price,
-                    sku: formData.sku
+                    sku: formData.sku,
+                    dimensions: formData.dimensions || null,  // Include dimensions
+                    material: formData.material || null       // Include material
                 })
                 .eq('id', product.id);
 
@@ -215,6 +221,38 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             onChange={handleChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                             required
+                        />
+                    </div>
+
+                    {/* New field: Dimensions */}
+                    <div className="mb-4">
+                        <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700 mb-1">
+                            Dimensiones
+                        </label>
+                        <input
+                            type="text"
+                            id="dimensions"
+                            name="dimensions"
+                            value={formData.dimensions}
+                            onChange={handleChange}
+                            placeholder="Ejemplo: 10x15x5 cm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        />
+                    </div>
+
+                    {/* New field: Material */}
+                    <div className="mb-4">
+                        <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">
+                            Material
+                        </label>
+                        <input
+                            type="text"
+                            id="material"
+                            name="material"
+                            value={formData.material}
+                            onChange={handleChange}
+                            placeholder="Ejemplo: Algodón, Cerámica, etc."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
                     </div>
 

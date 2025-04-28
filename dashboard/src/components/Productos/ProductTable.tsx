@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient.ts';
 import EditProductModal from "./EditModal.tsx";
-import DeleteConfirmationModal from '../common/DeleteConfirmationModal'; // Import the new component
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 
 // Product type based on your database schema
 type Product = {
@@ -14,6 +14,8 @@ type Product = {
     price: number;
     sku: string;
     category_name?: string; // For display purposes, joined from categories table
+    dimensions?: string;    // Added dimensions field
+    material?: string;      // Added material field
 };
 
 type SortDirection = 'asc' | 'desc';
@@ -152,7 +154,9 @@ const ProductTable: React.FC = () => {
             filteredProducts = products.filter(product =>
                 product.name.toLowerCase().includes(term) ||
                 product.description.toLowerCase().includes(term) ||
-                product.sku.toLowerCase().includes(term)
+                product.sku.toLowerCase().includes(term) ||
+                (product.dimensions && product.dimensions.toLowerCase().includes(term)) ||
+                (product.material && product.material.toLowerCase().includes(term))
             );
         }
 
@@ -210,7 +214,9 @@ const ProductTable: React.FC = () => {
             description: 'Descripción',
             price: 'Precio',
             sku: 'SKU',
-            category_name: 'Categoría'
+            category_name: 'Categoría',
+            dimensions: 'Dimensiones',
+            material: 'Material'
         };
 
         return columnNames[field] || String(field);
@@ -287,6 +293,12 @@ const ProductTable: React.FC = () => {
                             <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('sku')}>
                                 {getColumnName('sku')} {renderSortIndicator('sku')}
                             </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('dimensions')}>
+                                {getColumnName('dimensions')} {renderSortIndicator('dimensions')}
+                            </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('material')}>
+                                {getColumnName('material')} {renderSortIndicator('material')}
+                            </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('category_name')}>
                                 {getColumnName('category_name')} {renderSortIndicator('category_name')}
                             </th>
@@ -298,7 +310,7 @@ const ProductTable: React.FC = () => {
                         <tbody>
                         {getSortedAndFilteredProducts().length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
                                     No se encontraron productos
                                 </td>
                             </tr>
@@ -327,6 +339,8 @@ const ProductTable: React.FC = () => {
                                     <td className="px-4 py-2 max-w-xs truncate">{product.description}</td>
                                     <td className="px-4 py-2">{formatPrice(product.price)}</td>
                                     <td className="px-4 py-2">{product.sku}</td>
+                                    <td className="px-4 py-2">{product.dimensions || "-"}</td>
+                                    <td className="px-4 py-2">{product.material || "-"}</td>
                                     <td className="px-4 py-2">{product.category_name}</td>
                                     <td className="px-4 py-2">{formatDate(product.created_at)}</td>
                                 </tr>
