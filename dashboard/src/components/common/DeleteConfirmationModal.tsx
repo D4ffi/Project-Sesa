@@ -6,7 +6,7 @@ interface DeleteConfirmationModalProps {
     onClose: () => void;
     onConfirm: () => void;
     itemCount: number;
-    itemType: 'producto' | 'categoría';
+    itemType: 'producto' | 'categoría' | 'bodega';
     confirmationText: string;
 }
 

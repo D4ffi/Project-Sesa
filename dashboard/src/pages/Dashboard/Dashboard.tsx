@@ -5,7 +5,7 @@ import Layout from "../../components/common/Layout.tsx";
 import ActiveWarehousesCard from "../../components/Dashboard/ActiveWarehouses.tsx";
 import DashboardLinkButton from "../../components/Dashboard/DashboardLinkButton.tsx";
 import RefreshButton from "../../components/Dashboard/RefreshButton.tsx"; // Importar el nuevo componente
-import { LayoutDashboard, Package  } from "lucide-react";
+import {Building2, LayoutDashboard, Package} from "lucide-react";
 
 const Dashboard = () => {
     return (
@@ -39,6 +39,12 @@ const Dashboard = () => {
                             to="/categories"
                             label="Categorías"
                             icon={LayoutDashboard}
+                        />
+
+                        <DashboardLinkButton
+                            to="/warehouse"
+                            label="Bodegas"
+                            icon={Building2}
                         />
 
                     </div>

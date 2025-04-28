@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard/Dashboard.tsx";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProductDashboard from "./pages/Product/ProductDashboard.tsx";
 import CategoryPage from "./pages/Category/CategoryDashboard.tsx";
+import WarehousePage from "./pages/Warehouse/WarehousePage.tsx";
 
 // Crear una instancia de QueryClient con opciones predeterminadas
 const queryClient = new QueryClient({
@@ -44,6 +45,11 @@ createRoot(document.getElementById('root')!).render(
                         <Route path="/categories" element={
                             <ProtectedRoute>
                                 <CategoryPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/warehouse" element={
+                            <ProtectedRoute>
+                                <WarehousePage />
                             </ProtectedRoute>
                         } />
                         <Route path="/disable" element={<ErrorPage />} />
