@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient.ts';
 import EditProductModal from "./EditModal.tsx";
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal'; // Import the new component
 
 // Product type based on your database schema
 type Product = {
@@ -27,6 +28,9 @@ const ProductTable: React.FC = () => {
     const [sortField, setSortField] = useState<SortField>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [searchTerm, setSearchTerm] = useState('');
+
+    // New state for delete confirmation modal
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     // Fetch products on component mount
     useEffect(() => {
@@ -82,27 +86,31 @@ const ProductTable: React.FC = () => {
         }
     };
 
-    // Delete selected products
-    const handleDeleteSelected = async () => {
+    // Show delete confirmation modal
+    const handleShowDeleteModal = () => {
         if (selectedProductIds.length === 0) return;
+        setIsDeleteModalOpen(true);
+    };
 
-        if (window.confirm(`¿Está seguro de eliminar ${selectedProductIds.length} producto(s)?`)) {
-            try {
-                const { error } = await supabase
-                    .from('products')
-                    .delete()
-                    .in('id', selectedProductIds);
+    // Delete selected products after confirmation
+    const handleDeleteConfirmed = async () => {
+        try {
+            const { error } = await supabase
+                .from('products')
+                .delete()
+                .in('id', selectedProductIds);
 
-                if (error) throw error;
+            if (error) throw error;
 
-                // Refresh product list
-                fetchProducts();
-                // Clear selection
-                setSelectedProductIds([]);
-            } catch (err) {
-                console.error('Error deleting products:', err);
-                setError(err instanceof Error ? err.message : 'Error al eliminar productos');
-            }
+            // Refresh product list
+            fetchProducts();
+            // Clear selection
+            setSelectedProductIds([]);
+            // Close the modal
+            setIsDeleteModalOpen(false);
+        } catch (err) {
+            console.error('Error deleting products:', err);
+            setError(err instanceof Error ? err.message : 'Error al eliminar productos');
         }
     };
 
@@ -233,7 +241,7 @@ const ProductTable: React.FC = () => {
 
                     {selectedProductIds.length > 0 && (
                         <button
-                            onClick={handleDeleteSelected}
+                            onClick={handleShowDeleteModal}
                             className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors"
                         >
                             <Trash2 size={16} className="mr-1" /> Eliminar ({selectedProductIds.length})
@@ -338,6 +346,16 @@ const ProductTable: React.FC = () => {
                     onSuccess={handleProductUpdated}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteConfirmed}
+                itemCount={selectedProductIds.length}
+                itemType="producto"
+                confirmationText="EliminarProducto"
+            />
         </div>
     );
 };

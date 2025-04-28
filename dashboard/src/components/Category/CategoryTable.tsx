@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient.ts';
 import EditCategoryModal from "./EditCategoryModal.tsx";
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 
 // Category type based on your database schema
 type Category = {
@@ -23,6 +24,9 @@ const CategoryTable: React.FC = () => {
     const [sortField, setSortField] = useState<SortField>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [searchTerm, setSearchTerm] = useState('');
+
+    // State for delete confirmation modal
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     // Fetch categories on component mount
     useEffect(() => {
@@ -68,27 +72,31 @@ const CategoryTable: React.FC = () => {
         }
     };
 
-    // Delete selected categories
-    const handleDeleteSelected = async () => {
+    // Show delete confirmation modal
+    const handleShowDeleteModal = () => {
         if (selectedCategoryIds.length === 0) return;
+        setIsDeleteModalOpen(true);
+    };
 
-        if (window.confirm(`¿Está seguro de eliminar ${selectedCategoryIds.length} categoría(s)?`)) {
-            try {
-                const { error } = await supabase
-                    .from('categories')
-                    .delete()
-                    .in('id', selectedCategoryIds);
+    // Delete selected categories after confirmation
+    const handleDeleteConfirmed = async () => {
+        try {
+            const { error } = await supabase
+                .from('categories')
+                .delete()
+                .in('id', selectedCategoryIds);
 
-                if (error) throw error;
+            if (error) throw error;
 
-                // Refresh category list
-                fetchCategories();
-                // Clear selection
-                setSelectedCategoryIds([]);
-            } catch (err) {
-                console.error('Error deleting categories:', err);
-                setError(err instanceof Error ? err.message : 'Error al eliminar categorías');
-            }
+            // Refresh category list
+            fetchCategories();
+            // Clear selection
+            setSelectedCategoryIds([]);
+            // Close the modal
+            setIsDeleteModalOpen(false);
+        } catch (err) {
+            console.error('Error deleting categories:', err);
+            setError(err instanceof Error ? err.message : 'Error al eliminar categorías');
         }
     };
 
@@ -204,7 +212,7 @@ const CategoryTable: React.FC = () => {
 
                     {selectedCategoryIds.length > 0 && (
                         <button
-                            onClick={handleDeleteSelected}
+                            onClick={handleShowDeleteModal}
                             className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors"
                         >
                             <Trash2 size={16} className="mr-1" /> Eliminar ({selectedCategoryIds.length})
@@ -247,12 +255,13 @@ const CategoryTable: React.FC = () => {
                             <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('created_at')}>
                                 {getColumnName('created_at')} {renderSortIndicator('created_at')}
                             </th>
+                            <th className="px-4 py-2">Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
                         {getSortedAndFilteredCategories().length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                                     No se encontraron categorías
                                 </td>
                             </tr>
@@ -278,7 +287,7 @@ const CategoryTable: React.FC = () => {
                                     </td>
                                     <td className="px-4 py-2">{category.id}</td>
                                     <td className="px-4 py-2 font-medium">{category.name}</td>
-                                    <td className="px-4 py-2 max-w-xs truncate">{category.description}</td>
+                                    <td className="px-4 py-2 max-w-xs truncate">{category.description || "-"}</td>
                                     <td className="px-4 py-2">{formatDate(category.created_at)}</td>
                                     <td className="px-4 py-2">
                                         {/* No actions in row - will handle via selection instead */}
@@ -300,6 +309,16 @@ const CategoryTable: React.FC = () => {
                     onSuccess={handleCategoryUpdated}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteConfirmed}
+                itemCount={selectedCategoryIds.length}
+                itemType="categoría"
+                confirmationText="EliminarCategoria"
+            />
         </div>
     );
 };

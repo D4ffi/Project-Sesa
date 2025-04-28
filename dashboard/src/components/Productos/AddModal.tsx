@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Image as ImageIcon, Info } from 'lucide-react';
-import { supabase } from '../../utils/supabaseClient'; // Adjust path as needed
+import { supabase } from '../../utils/supabaseClient';
 
 interface ProductModalProps {
     isOpen: boolean;
@@ -13,6 +13,9 @@ interface Category {
     name: string;
     description?: string;
 }
+
+// URL del backend
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
     // Product form state
@@ -33,6 +36,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     // Display info about selected category
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -81,6 +85,34 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const filesArray = Array.from(e.target.files);
+
+            // Validar tamaño de archivos (5MB por archivo)
+            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB en bytes
+            const oversizedFiles = filesArray.filter(file => file.size > MAX_FILE_SIZE);
+
+            if (oversizedFiles.length > 0) {
+                setError(`Los siguientes archivos exceden el límite de 5MB: ${
+                    oversizedFiles.map(f => f.name).join(', ')
+                }`);
+                return;
+            }
+
+            // Validar número máximo de archivos (10 en total)
+            if (selectedFiles.length + filesArray.length > 10) {
+                setError('No puedes subir más de 10 imágenes por producto');
+                return;
+            }
+
+            // Validar tipo de archivo (solo imágenes)
+            const invalidFiles = filesArray.filter(file => !file.type.startsWith('image/'));
+            if (invalidFiles.length > 0) {
+                setError(`Los siguientes archivos no son imágenes: ${
+                    invalidFiles.map(f => f.name).join(', ')
+                }`);
+                return;
+            }
+
+            setError(null);
             setSelectedFiles(prev => [...prev, ...filesArray]);
 
             // Initialize alt texts for new images
@@ -128,6 +160,53 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         return true;
     };
 
+    // Función para subir imágenes a S3 a través del backend
+    const uploadImagesToS3 = async (productId: number) => {
+        if (selectedFiles.length === 0) return [];
+
+        try {
+            const formData = new FormData();
+            formData.append('productId', productId.toString());
+
+            // Agregar todas las imágenes al FormData
+            selectedFiles.forEach((file) => {
+                formData.append('images', file);
+            });
+
+            // Enviar las imágenes al endpoint del backend con manejo de timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos de timeout para archivos grandes
+
+            const response = await fetch(`${API_URL}/api/upload`, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            }).finally(() => {
+                clearTimeout(timeoutId);
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al subir imágenes');
+            }
+
+            const result = await response.json();
+            return result.files;
+        } catch (error) {
+            console.error('Error uploading images:', error);
+
+            // Manejo específico de errores
+            // Manejo específico de errores
+                        if (error instanceof Error && error.name === 'AbortError') {
+                            throw new Error('La carga de imágenes ha excedido el tiempo máximo. Intenta con archivos más pequeños o menos archivos.');
+                        }
+
+                        throw error;
+
+            throw error;
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -135,9 +214,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         if (!validateForm()) return;
 
         setLoading(true);
+        setUploadProgress(0);
 
         try {
-            // Insert product
+            // Insertar producto en Supabase
             const { data: productData, error: productError } = await supabase
                 .from('products')
                 .insert({
@@ -153,44 +233,34 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             if (productError) throw productError;
 
             const productId = productData.id;
+            setUploadProgress(30); // Progreso después de crear el producto
 
-            // Handle image uploads if any
+            // Subir imágenes a S3 si hay archivos seleccionados
             if (selectedFiles.length > 0) {
-                // Create directory for product
-                const productDir = `uploads/product-${productId}`;
+                // Subir imágenes a S3 a través del backend
+                const uploadedFiles = await uploadImagesToS3(productId);
+                setUploadProgress(70); // Progreso después de subir imágenes
 
-                // Upload each file and create database entries
-                for (let i = 0; i < selectedFiles.length; i++) {
-                    const file = selectedFiles[i];
+                // Insertar información de las imágenes en Supabase
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const file = uploadedFiles[i];
                     const isPrimary = i === primaryImageIndex;
-                    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-                    const filePath = `${productDir}/${fileName}`;
 
-                    // Upload file to storage
-                    const { error: uploadError } = await supabase.storage
-                        .from('public')
-                        .upload(filePath, file);
-
-                    if (uploadError) throw uploadError;
-
-                    // Get public URL
-                    const { data: urlData } = supabase.storage
-                        .from('public')
-                        .getPublicUrl(filePath);
-
-                    // Insert image record
                     const { error: imageError } = await supabase
                         .from('product_images')
                         .insert({
                             product_id: productId,
-                            url: urlData.publicUrl,
+                            url: file.s3Url,
                             is_primary: isPrimary,
                             alt_text: imageAltTexts[i] || formData.name,
+                            path: file.path // Guardamos la ruta en S3 por si necesitamos eliminar la imagen después
                         });
 
                     if (imageError) throw imageError;
                 }
             }
+
+            setUploadProgress(100); // Progreso completado
 
             // Reset form
             setFormData({
@@ -213,6 +283,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             setError(err instanceof Error ? err.message : 'Ha ocurrido un error al guardar el producto');
         } finally {
             setLoading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -367,6 +438,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                     <Upload size={40} className="text-gray-400 mb-2" />
                                     <p className="text-gray-500">Haz clic para seleccionar imágenes</p>
                                     <p className="text-xs text-gray-400 mt-1">o arrastra y suelta aquí</p>
+                                    <div className="mt-3 text-xs text-gray-500">
+                                        <p>Máximo 10 imágenes por producto</p>
+                                        <p>Tamaño máximo: 5MB por imagen</p>
+                                        <p>Formatos aceptados: JPG, PNG, GIF, WebP</p>
+                                    </div>
                                 </label>
                             </div>
 
@@ -430,6 +506,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                             )}
                         </div>
                     </div>
+
+                    {/* Barra de progreso (visible durante la carga) */}
+                    {loading && uploadProgress > 0 && (
+                        <div className="mt-4">
+                            <div className="relative pt-1">
+                                <div className="flex mb-2 items-center justify-between">
+                                    <div>
+                                        <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-orange-600 bg-orange-200">
+                                            {uploadProgress < 100 ? 'Subiendo...' : 'Completado'}
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-xs font-semibold inline-block text-orange-600">
+                                            {uploadProgress}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-orange-200">
+                                    <div
+                                        style={{ width: `${uploadProgress}%` }}
+                                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-orange-500 transition-all duration-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="mt-8 border-t pt-6 flex justify-end space-x-3">
                         <button
