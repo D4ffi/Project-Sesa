@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 
-// Warehouse type based on database schema
+// Warehouse type based on database schema (sin capacidad)
 type Warehouse = {
     id: number;
     created_at: string;
     name: string;
     location: string;
     active: boolean;
-    capacity: number;
     description?: string;
 };
 
@@ -31,7 +30,6 @@ const EditWarehouseModal: React.FC<EditWarehouseModalProps> = ({
         name: warehouse.name,
         location: warehouse.location,
         active: warehouse.active,
-        capacity: warehouse.capacity,
         description: warehouse.description || ''
     });
 
@@ -47,11 +45,6 @@ const EditWarehouseModal: React.FC<EditWarehouseModalProps> = ({
             setFormData(prev => ({
                 ...prev,
                 [name]: target.checked
-            }));
-        } else if (type === 'number') {
-            setFormData(prev => ({
-                ...prev,
-                [name]: parseFloat(value) || 0
             }));
         } else {
             setFormData(prev => ({
@@ -77,17 +70,12 @@ const EditWarehouseModal: React.FC<EditWarehouseModalProps> = ({
                 throw new Error('La ubicación de la bodega es obligatoria');
             }
 
-            if (formData.capacity <= 0) {
-                throw new Error('La capacidad debe ser mayor que cero');
-            }
-
             const { error } = await supabase
                 .from('warehouses')
                 .update({
                     name: formData.name,
                     location: formData.location,
                     active: formData.active,
-                    capacity: formData.capacity,
                     description: formData.description || null
                 })
                 .eq('id', warehouse.id);
@@ -150,23 +138,6 @@ const EditWarehouseModal: React.FC<EditWarehouseModalProps> = ({
                             name="location"
                             value={formData.location}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
-                            Capacidad (m²) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            id="capacity"
-                            name="capacity"
-                            value={formData.capacity}
-                            onChange={handleChange}
-                            step="0.01"
-                            min="0.01"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                             required
                         />

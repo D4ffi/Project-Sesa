@@ -12,6 +12,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProductDashboard from "./pages/Product/ProductDashboard.tsx";
 import CategoryPage from "./pages/Category/CategoryDashboard.tsx";
 import WarehousePage from "./pages/Warehouse/WarehousePage.tsx";
+// Importamos la nueva página de detalle de bodega
+import WarehouseDetailPage from "./pages/Warehouse/WarehouseDetailPage.tsx";
 
 // Crear una instancia de QueryClient con opciones predeterminadas
 const queryClient = new QueryClient({
@@ -50,6 +52,12 @@ createRoot(document.getElementById('root')!).render(
                         <Route path="/warehouse" element={
                             <ProtectedRoute>
                                 <WarehousePage />
+                            </ProtectedRoute>
+                        } />
+                        {/* Agregamos la nueva ruta para el detalle de bodega */}
+                        <Route path="/warehouse/:id" element={
+                            <ProtectedRoute>
+                                <WarehouseDetailPage />
                             </ProtectedRoute>
                         } />
                         <Route path="/disable" element={<ErrorPage />} />

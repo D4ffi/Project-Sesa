@@ -13,7 +13,6 @@ const AddWarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onS
     const [formData, setFormData] = useState({
         name: '',
         location: '',
-        capacity: '0',
         description: '',
         active: true,
     });
@@ -43,12 +42,6 @@ const AddWarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onS
             return false;
         }
 
-        const capacity = parseFloat(formData.capacity);
-        if (isNaN(capacity) || capacity <= 0) {
-            setError('La capacidad debe ser un número mayor que cero');
-            return false;
-        }
-
         return true;
     };
 
@@ -66,7 +59,6 @@ const AddWarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onS
                 .insert({
                     name: formData.name,
                     location: formData.location,
-                    capacity: parseFloat(formData.capacity),
                     description: formData.description || null,
                     active: formData.active
                 });
@@ -77,7 +69,6 @@ const AddWarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onS
             setFormData({
                 name: '',
                 location: '',
-                capacity: '0',
                 description: '',
                 active: true,
             });
@@ -140,22 +131,6 @@ const AddWarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onS
                                 name="location"
                                 value={formData.location}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-700 text-sm font-medium mb-1">
-                                Capacidad (m²) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                name="capacity"
-                                value={formData.capacity}
-                                onChange={handleInputChange}
-                                min="1"
-                                step="0.01"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                                 required
                             />
