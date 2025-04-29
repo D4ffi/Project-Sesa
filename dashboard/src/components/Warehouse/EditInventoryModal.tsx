@@ -1,91 +1,50 @@
-// dashboard/src/components/Warehouse/AddInventoryModal.tsx
-import React, { useState, useEffect } from 'react';
+// dashboard/src/components/Warehouse/EditInventoryModal.tsx
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 
-// Product type (basado en el modelo utilizado en AddModal.tsx)
-type Product = {
+// Type for the inventory item
+type InventoryItem = {
     id: number;
-    name: string;
-    sku: string;
-    price: number;
-    categories: {
-        id: number;
-        name: string;
-    };
+    warehouse_id: number;
+    product_id: number;
+    stock_quantity: number;
+    min_stock_level: number;
+    max_stock_level: number | null;
+    last_updated: string;
+    // Joined fields
+    product_name?: string;
+    product_sku?: string;
+    category_name?: string;
 };
 
-interface AddInventoryModalProps {
-    warehouseId: number;
+interface EditInventoryModalProps {
+    item: InventoryItem;
     warehouseName: string;
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
-                                                                 warehouseId,
-                                                                 warehouseName,
-                                                                 isOpen,
-                                                                 onClose,
-                                                                 onSuccess
-                                                             }) => {
-    // Form state
+const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
+                                                                   item,
+                                                                   warehouseName,
+                                                                   isOpen,
+                                                                   onClose,
+                                                                   onSuccess
+                                                               }) => {
+    // Form state - initialize with values from the item
     const [formData, setFormData] = useState({
-        product_id: '',
-        stock_quantity: 0,
-        min_stock_level: 0,
-        max_stock_level: null as number | null,
+        stock_quantity: item.stock_quantity,
+        min_stock_level: item.min_stock_level,
+        max_stock_level: item.max_stock_level,
     });
 
     // Loading and error states
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Products for dropdown
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loadingProducts, setLoadingProducts] = useState(true);
-
-    // Fetch products on component mount
-    useEffect(() => {
-        if (isOpen) {
-            fetchProducts();
-        }
-    }, [isOpen]);
-
-    const fetchProducts = async () => {
-        try {
-            setLoadingProducts(true);
-            setError(null);
-
-            // Usando la misma estructura de consulta que en otros componentes
-            const { data, error } = await supabase
-                .from('products')
-                .select(`
-                    id, 
-                    name, 
-                    sku, 
-                    price,
-                    category_id,
-                    categories(id, name)
-                `)
-                .order('name', { ascending: true });
-
-            if (error) throw error;
-
-            // Debugging - ayuda a ver exactamente qué estructura devuelve
-            console.log('Primer producto:', data?.[0]);
-
-            setProducts(data || []);
-        } catch (err) {
-            console.error('Error fetching products:', err);
-            setError(err instanceof Error ? err.message : 'Error al cargar productos');
-        } finally {
-            setLoadingProducts(false);
-        }
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type } = e.target;
 
         if (type === 'number') {
@@ -106,11 +65,6 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
     };
 
     const validateForm = () => {
-        if (!formData.product_id) {
-            setError('Debe seleccionar un producto');
-            return false;
-        }
-
         if (formData.stock_quantity < 0) {
             setError('La cantidad de stock no puede ser negativa');
             return false;
@@ -138,64 +92,28 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
         setLoading(true);
 
         try {
-            // Check if this product already exists in this warehouse's inventory
-            const { data: existingItems, error: checkError } = await supabase
+            const { error: updateError } = await supabase
                 .from('warehouse_inventory')
-                .select('id')
-                .eq('warehouse_id', warehouseId)
-                .eq('product_id', formData.product_id);
-
-            if (checkError) throw checkError;
-
-            if (existingItems && existingItems.length > 0) {
-                throw new Error('Este producto ya existe en el inventario de esta bodega. Por favor edite el registro existente.');
-            }
-
-            // Insert new inventory record
-            const { error: insertError } = await supabase
-                .from('warehouse_inventory')
-                .insert({
-                    warehouse_id: warehouseId,
-                    product_id: parseInt(formData.product_id, 10),
+                .update({
                     stock_quantity: formData.stock_quantity,
                     min_stock_level: formData.min_stock_level,
                     max_stock_level: formData.max_stock_level,
                     last_updated: new Date().toISOString()
-                });
+                })
+                .eq('id', item.id);
 
-            if (insertError) throw insertError;
-
-            // Reset form
-            setFormData({
-                product_id: '',
-                stock_quantity: 0,
-                min_stock_level: 0,
-                max_stock_level: null,
-            });
+            if (updateError) throw updateError;
 
             // Notify parent and close modal
             onSuccess();
             onClose();
 
         } catch (err) {
-            console.error('Error adding inventory item:', err);
-            setError(err instanceof Error ? err.message : 'Error al agregar elemento al inventario');
+            console.error('Error updating inventory item:', err);
+            setError(err instanceof Error ? err.message : 'Error al actualizar elemento del inventario');
         } finally {
             setLoading(false);
         }
-    };
-
-    // Función para obtener el nombre de la categoría de un producto
-    const getCategoryName = (product: Product): string => {
-        // Diferentes formas de acceder a la categoría dependiendo de la estructura
-        if (product.categories) {
-            if (Array.isArray(product.categories)) {
-                return product.categories[0]?.name || 'Sin categoría';
-            } else {
-                return product.categories.name || 'Sin categoría';
-            }
-        }
-        return 'Sin categoría';
     };
 
     if (!isOpen) return null;
@@ -204,7 +122,7 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-auto">
                 <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-xl font-bold text-gray-800">Agregar Producto al Inventario</h2>
+                    <h2 className="text-xl font-bold text-gray-800">Editar Elemento de Inventario</h2>
                     <button
                         onClick={onClose}
                         className="text-gray-500 hover:text-gray-700"
@@ -222,36 +140,14 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
 
                     <div className="mb-4">
                         <p className="text-sm text-gray-600 mb-2">
-                            Agregando producto a bodega: <span className="font-semibold">{warehouseName}</span>
+                            Editando: <span className="font-semibold">{item.product_name}</span> en bodega <span className="font-semibold">{warehouseName}</span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                            SKU: {item.product_sku} | Categoría: {item.category_name}
                         </p>
                     </div>
 
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-gray-700 text-sm font-medium mb-1">
-                                Producto <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                name="product_id"
-                                value={formData.product_id}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                required
-                                disabled={loadingProducts}
-                            >
-                                <option value="">Seleccionar producto</option>
-                                {loadingProducts ? (
-                                    <option disabled>Cargando productos...</option>
-                                ) : (
-                                    products.map(product => (
-                                        <option key={product.id} value={product.id}>
-                                            {product.name} - {product.sku} ({getCategoryName(product)})
-                                        </option>
-                                    ))
-                                )}
-                            </select>
-                        </div>
-
                         <div>
                             <label className="block text-gray-700 text-sm font-medium mb-1">
                                 Cantidad en Stock
@@ -320,7 +216,7 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
                                     Guardando...
                                 </>
                             ) : (
-                                'Agregar al Inventario'
+                                'Guardar Cambios'
                             )}
                         </button>
                     </div>
@@ -330,4 +226,4 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
     );
 };
 
-export default AddInventoryModal;
+export default EditInventoryModal;

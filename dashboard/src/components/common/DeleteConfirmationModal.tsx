@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { X, AlertTriangle } from 'lucide-react';
+import React, {useState} from 'react';
+import {X, AlertTriangle} from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
-    itemCount: number;
-    itemType: 'producto' | 'categoría' | 'bodega';
-    confirmationText: string;
+    isOpen: boolean,
+    onClose: () => void,
+    onConfirm: () => void,
+    itemCount: number,
+    itemType: 'producto' | 'categoría' | 'bodega' | 'inventario',
+    confirmationText: string,
 }
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -16,7 +16,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                                                                              onConfirm,
                                                                              itemCount,
                                                                              itemType,
-                                                                             confirmationText
+                                                                             confirmationText,
                                                                          }) => {
     const [inputValue, setInputValue] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -40,14 +40,14 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
                 <div className="flex justify-between items-center p-4 border-b">
                     <div className="flex items-center">
-                        <AlertTriangle size={20} className="text-red-500 mr-2" />
+                        <AlertTriangle size={20} className="text-red-500 mr-2"/>
                         <h2 className="text-lg font-semibold text-gray-800">Confirmar Eliminación</h2>
                     </div>
                     <button
                         onClick={onClose}
                         className="text-gray-500 hover:text-gray-700 focus:outline-none"
                     >
-                        <X size={20} />
+                        <X size={20}/>
                     </button>
                 </div>
 
@@ -58,7 +58,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                     </p>
 
                     <p className="text-gray-700 mb-4">
-                        Para confirmar, escriba <span className="font-semibold">{confirmationText}</span> en el campo de abajo:
+                        Para confirmar, escriba <span className="font-semibold">{confirmationText}</span> en el campo de
+                        abajo:
                     </p>
 
                     <form onSubmit={handleSubmit}>

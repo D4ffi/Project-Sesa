@@ -1,9 +1,14 @@
+// dashboard/src/pages/Warehouse/WarehouseDetailPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Edit, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit, AlertTriangle, Plus } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import Layout from "../../components/common/Layout.tsx";
 import EditWarehouseModal from "../../components/Warehouse/EditWareHouseModal.tsx";
+import CRUDButton from "../../components/Productos/CrudButton.tsx";
+import AddInventoryModal from "../../components/Warehouse/AddInventoryModal.tsx";
+import WarehouseInventoryTable from "../../components/Warehouse/WarehouseInventoryTable.tsx";
+import EditInventoryModal from "../../components/Warehouse/EditInventoryModal.tsx";
 
 // Tipo de bodega sin el campo capacity
 type Warehouse = {
@@ -13,6 +18,21 @@ type Warehouse = {
     location: string;
     active: boolean;
     description?: string;
+};
+
+// Tipo para el elemento de inventario
+type InventoryItem = {
+    id: number;
+    warehouse_id: number;
+    product_id: number;
+    stock_quantity: number;
+    min_stock_level: number;
+    max_stock_level: number | null;
+    last_updated: string;
+    // Joined fields
+    product_name?: string;
+    product_sku?: string;
+    category_name?: string;
 };
 
 const WarehouseDetailPage: React.FC = () => {
@@ -27,6 +47,11 @@ const WarehouseDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(!initialWarehouse);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    // Estados para el inventario
+    const [isAddInventoryModalOpen, setIsAddInventoryModalOpen] = useState(false);
+    const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | null>(null);
+    const [inventoryRefreshTrigger, setInventoryRefreshTrigger] = useState(0);
 
     // Obtener los datos de la bodega si no están en el estado de navegación
     useEffect(() => {
@@ -189,23 +214,61 @@ const WarehouseDetailPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Sección para el inventario de la bodega (futura implementación) */}
+                    {/* Sección para el inventario de la bodega */}
                     <div className="p-6 border-t border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-700 mb-3">Inventario</h2>
-                        <div className="bg-gray-100 rounded-lg p-4 text-center text-gray-500">
-                            Información del inventario próximamente
+                        <div className="flex justify-between items-center mb-3">
+                            <h2 className="text-lg font-semibold text-gray-700">Inventario</h2>
+                            <CRUDButton
+                                icon={Plus}
+                                label="Agregar producto al inventario"
+                                tooltip="Agregar producto al inventario"
+                                onClick={() => setIsAddInventoryModalOpen(true)}
+                            />
                         </div>
+                        <WarehouseInventoryTable
+                            key={inventoryRefreshTrigger}
+                            warehouseId={warehouse.id}
+                            onEdit={item => setEditingInventoryItem(item)}
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* Modal de Edición */}
+            {/* Modal de Edición de Bodega */}
             {isEditModalOpen && (
                 <EditWarehouseModal
                     warehouse={warehouse}
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
                     onSuccess={handleEditSuccess}
+                />
+            )}
+
+            {/* Modal de Agregar Inventario */}
+            {isAddInventoryModalOpen && (
+                <AddInventoryModal
+                    warehouseId={warehouse.id}
+                    warehouseName={warehouse.name}
+                    isOpen={isAddInventoryModalOpen}
+                    onClose={() => setIsAddInventoryModalOpen(false)}
+                    onSuccess={() => {
+                        setInventoryRefreshTrigger(prev => prev + 1);
+                        setIsAddInventoryModalOpen(false);
+                    }}
+                />
+            )}
+
+            {/* Modal de Edición de Inventario */}
+            {editingInventoryItem && (
+                <EditInventoryModal
+                    item={editingInventoryItem}
+                    warehouseName={warehouse.name}
+                    isOpen={!!editingInventoryItem}
+                    onClose={() => setEditingInventoryItem(null)}
+                    onSuccess={() => {
+                        setInventoryRefreshTrigger(prev => prev + 1);
+                        setEditingInventoryItem(null);
+                    }}
                 />
             )}
         </Layout>
