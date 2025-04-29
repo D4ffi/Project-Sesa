@@ -91,21 +91,34 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
             }
 
             // Transform data to include joined fields at the top level
+            // Transform data to include joined fields at the top level
             const formattedItems = data?.map(item => {
-                // Ensure products exists before trying to access properties
-                const productName = item.products?.name || 'Producto desconocido';
-                const productSku = item.products?.sku || 'N/A';
+                // Ensure products exists and is an array before trying to access properties
+                const product = Array.isArray(item.products) && item.products.length > 0
+                    ? item.products[0]
+                    : null;
+
+                const productName = product?.name || 'Producto desconocido';
+                const productSku = product?.sku || 'N/A';
+
                 // Handle potentially nested category data
                 let categoryName = 'Sin categoría';
-                if (item.products?.categories) {
-                    categoryName = item.products.categories.name || 'Sin categoría';
+                if (product?.categories && Array.isArray(product.categories) && product.categories.length > 0) {
+                    categoryName = product.categories[0]?.name || 'Sin categoría';
                 }
 
                 return {
                     ...item,
                     product_name: productName,
                     product_sku: productSku,
-                    category_name: categoryName
+                    category_name: categoryName,
+                    // Add the proper product structure for InventoryItem type compatibility
+                    products: {
+                        id: product?.id || 0,
+                        name: productName,
+                        sku: productSku,
+                        categories: categoryName !== 'Sin categoría' ? { name: categoryName } : undefined
+                    }
                 };
             }) || [];
 
@@ -206,6 +219,11 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                 const valueA = a[sortField] !== undefined ? a[sortField] : '';
                 const valueB = b[sortField] !== undefined ? b[sortField] : '';
 
+                // Safely compare values handling null/undefined
+                if (valueA === null || valueA === undefined) return sortDirection === 'asc' ? -1 : 1;
+                if (valueB === null || valueB === undefined) return sortDirection === 'asc' ? 1 : -1;
+
+                // Compare non-null values
                 if (valueA < valueB) {
                     return sortDirection === 'asc' ? -1 : 1;
                 }
@@ -311,7 +329,8 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                             <table className="min-w-full">
                                 <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="w-10 px-4 py-2">
+                                    {/* Columna de checkbox */}
+                                    <th className="w-10 px-4 py-2 text-center">
                                         <button onClick={toggleSelectAll} className="focus:outline-none">
                                             {selectedItemIds.length === inventoryItems.length && inventoryItems.length > 0 ? (
                                                 <CheckSquare size={20} className="text-orange-500" />
@@ -320,84 +339,97 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                                             )}
                                         </button>
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('product_name')}>
+
+                                    {/* Todos los encabezados centrados */}
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('product_name')}>
                                         Producto {renderSortIndicator('product_name')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('product_sku')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('product_sku')}>
                                         SKU {renderSortIndicator('product_sku')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('category_name')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('category_name')}>
                                         Categoría {renderSortIndicator('category_name')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('stock')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('stock')}>
                                         Stock {renderSortIndicator('stock')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('min_stock_level')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('min_stock_level')}>
                                         Mín {renderSortIndicator('min_stock_level')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('max_stock_level')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('max_stock_level')}>
                                         Máx {renderSortIndicator('max_stock_level')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('last_updated')}>
+                                    <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('last_updated')}>
                                         Actualizado {renderSortIndicator('last_updated')}
                                     </th>
-                                    <th className="px-4 py-2">Estado</th>
+                                    <th className="px-4 py-2 text-center">Estado</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {getSortedAndFilteredItems().map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={`border-t border-gray-200 hover:bg-gray-50 ${
-                                            selectedItemIds.includes(item.id) ? 'bg-orange-50' : ''
-                                        }`}
-                                    >
-                                        <td className="px-4 py-2 text-center">
-                                            <button
-                                                onClick={() => toggleItemSelection(item.id)}
-                                                className="focus:outline-none"
-                                            >
-                                                {selectedItemIds.includes(item.id) ? (
-                                                    <CheckSquare size={20} className="text-orange-500" />
-                                                ) : (
-                                                    <Square size={20} className="text-gray-400" />
-                                                )}
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-2 font-medium">{item.product_name}</td>
-                                        <td className="px-4 py-2">{item.product_sku}</td>
-                                        <td className="px-4 py-2">{item.category_name}</td>
-                                        <td className="px-4 py-2">
-                                                <span className={`${
-                                                    isStockLow(item)
-                                                        ? 'text-red-600 font-medium'
-                                                        : isStockHigh(item)
-                                                            ? 'text-yellow-600 font-medium'
-                                                            : ''
-                                                }`}>
-                                                    {item.stock}
-                                                </span>
-                                        </td>
-                                        <td className="px-4 py-2">{item.min_stock_level}</td>
-                                        <td className="px-4 py-2">{item.max_stock_level !== null ? item.max_stock_level : '-'}</td>
-                                        <td className="px-4 py-2 text-sm">{formatDate(item.last_updated)}</td>
-                                        <td className="px-4 py-2">
-                                            {isStockLow(item) && (
-                                                <div className="flex items-center text-red-600">
-                                                    <AlertTriangle size={16} className="mr-1" /> Bajo stock
-                                                </div>
-                                            )}
-                                            {isStockHigh(item) && (
-                                                <div className="flex items-center text-yellow-600">
-                                                    <AlertTriangle size={16} className="mr-1" /> Exceso
-                                                </div>
-                                            )}
-                                            {!isStockLow(item) && !isStockHigh(item) && (
-                                                <span className="text-green-600">OK</span>
-                                            )}
+                                {getSortedAndFilteredItems().length === 0 ? (
+                                    <tr>
+                                        <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                                            No se encontraron productos en el inventario
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    getSortedAndFilteredItems().map(item => (
+                                        <tr
+                                            key={item.id}
+                                            className={`border-t border-gray-200 hover:bg-gray-50 ${
+                                                selectedItemIds.includes(item.id) ? 'bg-orange-50' : ''
+                                            }`}
+                                        >
+                                            {/* Celda de checkbox centrada */}
+                                            <td className="px-4 py-2 text-center">
+                                                <button
+                                                    onClick={() => toggleItemSelection(item.id)}
+                                                    className="focus:outline-none"
+                                                >
+                                                    {selectedItemIds.includes(item.id) ? (
+                                                        <CheckSquare size={20} className="text-orange-500" />
+                                                    ) : (
+                                                        <Square size={20} className="text-gray-400" />
+                                                    )}
+                                                </button>
+                                            </td>
+
+                                            {/* Todas las celdas centradas */}
+                                            <td className="px-4 py-2 font-medium text-center">{item.product_name}</td>
+                                            <td className="px-4 py-2 text-center">{item.product_sku}</td>
+                                            <td className="px-4 py-2 text-center">{item.category_name}</td>
+                                            <td className="px-4 py-2 text-center">
+                        <span className={`${
+                            isStockLow(item)
+                                ? 'text-red-600 font-medium'
+                                : isStockHigh(item)
+                                    ? 'text-yellow-600 font-medium'
+                                    : ''
+                        }`}>
+                            {item.stock}
+                        </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-center">{item.min_stock_level}</td>
+                                            <td className="px-4 py-2 text-center">{item.max_stock_level !== null ? item.max_stock_level : '-'}</td>
+                                            <td className="px-4 py-2 text-sm text-center">{formatDate(item.last_updated)}</td>
+                                            <td className="px-4 py-2 text-center">
+                                                {isStockLow(item) && (
+                                                    <div className="flex items-center justify-center text-red-600">
+                                                        <AlertTriangle size={16} className="mr-1" /> Bajo stock
+                                                    </div>
+                                                )}
+                                                {isStockHigh(item) && (
+                                                    <div className="flex items-center justify-center text-yellow-600">
+                                                        <AlertTriangle size={16} className="mr-1" /> Exceso
+                                                    </div>
+                                                )}
+                                                {!isStockLow(item) && !isStockHigh(item) && (
+                                                    <span className="text-green-600">OK</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                                 </tbody>
                             </table>
                         </div>

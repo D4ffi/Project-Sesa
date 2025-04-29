@@ -112,7 +112,7 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
             console.log('Actualizando datos de inventario:', updateData);
 
             const { error: updateError } = await supabase
-                .from('warehouse_inventory')
+                .from('warehouse-detail')
                 .update(updateData)
                 .eq('id', item.id);
 

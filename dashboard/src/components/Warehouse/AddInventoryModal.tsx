@@ -13,7 +13,7 @@ type Product = {
     categories?: {
         id: number;
         name: string;
-    };
+    } | { id: number; name: string; }[];
 };
 
 interface AddInventoryModalProps {
@@ -84,7 +84,7 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
                 });
             }
 
-            setProducts(data || []);
+            setProducts((data || []) as Product[]);
         } catch (err) {
             console.error('Error fetching products:', err);
             setError(err instanceof Error ? err.message : 'Error al cargar productos');

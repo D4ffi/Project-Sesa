@@ -253,7 +253,7 @@ const WarehouseTable: React.FC = () => {
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <thead className="bg-gray-100">
                         <tr>
-                            <th className="w-10 px-4 py-2">
+                            <th className="w-10 px-4 py-2 text-center">
                                 <button onClick={toggleSelectAll} className="focus:outline-none">
                                     {selectedWarehouseIds.length === warehouses.length && warehouses.length > 0 ? (
                                         <CheckSquare size={20} className="text-orange-500" />
@@ -262,25 +262,25 @@ const WarehouseTable: React.FC = () => {
                                     )}
                                 </button>
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('id')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('id')}>
                                 {getColumnName('id')} {renderSortIndicator('id')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('name')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('name')}>
                                 {getColumnName('name')} {renderSortIndicator('name')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('location')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('location')}>
                                 {getColumnName('location')} {renderSortIndicator('location')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('active')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('active')}>
                                 {getColumnName('active')} {renderSortIndicator('active')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('description')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('description')}>
                                 {getColumnName('description')} {renderSortIndicator('description')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('created_at')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('created_at')}>
                                 {getColumnName('created_at')} {renderSortIndicator('created_at')}
                             </th>
-                            <th className="px-4 py-2">Detalles</th>
+                            <th className="px-4 py-2 text-center">Detalles</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -310,21 +310,21 @@ const WarehouseTable: React.FC = () => {
                                             )}
                                         </button>
                                     </td>
-                                    <td className="px-4 py-2" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.id}</td>
-                                    <td className="px-4 py-2 font-medium" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.name}</td>
-                                    <td className="px-4 py-2" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.location}</td>
-                                    <td className="px-4 py-2" onClick={() => handleWarehouseClick(warehouse)}>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            warehouse.active
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {warehouse.active ? 'Activa' : 'Inactiva'}
-                                        </span>
+                                    <td className="px-4 py-2 text-center" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.id}</td>
+                                    <td className="px-4 py-2 font-medium text-center" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.name}</td>
+                                    <td className="px-4 py-2 text-center" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.location}</td>
+                                    <td className="px-4 py-2 text-center" onClick={() => handleWarehouseClick(warehouse)}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        warehouse.active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                    }`}>
+                        {warehouse.active ? 'Activa' : 'Inactiva'}
+                    </span>
                                     </td>
-                                    <td className="px-4 py-2 max-w-xs truncate" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.description || "-"}</td>
-                                    <td className="px-4 py-2" onClick={() => handleWarehouseClick(warehouse)}>{formatDate(warehouse.created_at)}</td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2 max-w-xs truncate text-center" onClick={() => handleWarehouseClick(warehouse)}>{warehouse.description || "-"}</td>
+                                    <td className="px-4 py-2 text-center" onClick={() => handleWarehouseClick(warehouse)}>{formatDate(warehouse.created_at)}</td>
+                                    <td className="px-4 py-2 text-center">
                                         <button
                                             onClick={() => handleWarehouseClick(warehouse)}
                                             className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded"

@@ -234,7 +234,7 @@ const CategoryTable: React.FC = () => {
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <thead className="bg-gray-100">
                         <tr>
-                            <th className="w-10 px-4 py-2">
+                            <th className="w-10 px-4 py-2 text-center">
                                 <button onClick={toggleSelectAll} className="focus:outline-none">
                                     {selectedCategoryIds.length === categories.length && categories.length > 0 ? (
                                         <CheckSquare size={20} className="text-orange-500" />
@@ -243,16 +243,16 @@ const CategoryTable: React.FC = () => {
                                     )}
                                 </button>
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('id')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('id')}>
                                 {getColumnName('id')} {renderSortIndicator('id')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('name')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('name')}>
                                 {getColumnName('name')} {renderSortIndicator('name')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('description')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('description')}>
                                 {getColumnName('description')} {renderSortIndicator('description')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('created_at')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('created_at')}>
                                 {getColumnName('created_at')} {renderSortIndicator('created_at')}
                             </th>
                         </tr>
@@ -284,13 +284,10 @@ const CategoryTable: React.FC = () => {
                                             )}
                                         </button>
                                     </td>
-                                    <td className="px-4 py-2">{category.id}</td>
-                                    <td className="px-4 py-2 font-medium">{category.name}</td>
-                                    <td className="px-4 py-2 max-w-xs truncate">{category.description || "-"}</td>
-                                    <td className="px-4 py-2">{formatDate(category.created_at)}</td>
-                                    <td className="px-4 py-2">
-                                        {/* No actions in row - will handle via selection instead */}
-                                    </td>
+                                    <td className="px-4 py-2 text-center">{category.id}</td>
+                                    <td className="px-4 py-2 font-medium text-center">{category.name}</td>
+                                    <td className="px-4 py-2 max-w-xs truncate text-center">{category.description || "-"}</td>
+                                    <td className="px-4 py-2 text-center">{formatDate(category.created_at)}</td>
                                 </tr>
                             ))
                         )}

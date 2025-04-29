@@ -269,7 +269,7 @@ const ProductTable: React.FC = () => {
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <thead className="bg-gray-100">
                         <tr>
-                            <th className="w-10 px-4 py-2">
+                            <th className="w-10 px-4 py-2 text-center">
                                 <button onClick={toggleSelectAll} className="focus:outline-none">
                                     {selectedProductIds.length === products.length && products.length > 0 ? (
                                         <CheckSquare size={20} className="text-orange-500" />
@@ -278,31 +278,31 @@ const ProductTable: React.FC = () => {
                                     )}
                                 </button>
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('id')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('id')}>
                                 {getColumnName('id')} {renderSortIndicator('id')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('name')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('name')}>
                                 {getColumnName('name')} {renderSortIndicator('name')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('description')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('description')}>
                                 {getColumnName('description')} {renderSortIndicator('description')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('price')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('price')}>
                                 {getColumnName('price')} {renderSortIndicator('price')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('sku')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('sku')}>
                                 {getColumnName('sku')} {renderSortIndicator('sku')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('dimensions')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('dimensions')}>
                                 {getColumnName('dimensions')} {renderSortIndicator('dimensions')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('material')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('material')}>
                                 {getColumnName('material')} {renderSortIndicator('material')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('category_name')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('category_name')}>
                                 {getColumnName('category_name')} {renderSortIndicator('category_name')}
                             </th>
-                            <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('created_at')}>
+                            <th className="px-4 py-2 cursor-pointer text-center" onClick={() => handleSort('created_at')}>
                                 {getColumnName('created_at')} {renderSortIndicator('created_at')}
                             </th>
                         </tr>
@@ -334,15 +334,15 @@ const ProductTable: React.FC = () => {
                                             )}
                                         </button>
                                     </td>
-                                    <td className="px-4 py-2">{product.id}</td>
-                                    <td className="px-4 py-2 font-medium">{product.name}</td>
-                                    <td className="px-4 py-2 max-w-xs truncate">{product.description}</td>
-                                    <td className="px-4 py-2">{formatPrice(product.price)}</td>
-                                    <td className="px-4 py-2">{product.sku}</td>
-                                    <td className="px-4 py-2">{product.dimensions || "-"}</td>
-                                    <td className="px-4 py-2">{product.material || "-"}</td>
-                                    <td className="px-4 py-2">{product.category_name}</td>
-                                    <td className="px-4 py-2">{formatDate(product.created_at)}</td>
+                                    <td className="px-4 py-2 text-center">{product.id}</td>
+                                    <td className="px-4 py-2 font-medium text-center">{product.name}</td>
+                                    <td className="px-4 py-2 max-w-xs truncate text-center">{product.description}</td>
+                                    <td className="px-4 py-2 text-center">{formatPrice(product.price)}</td>
+                                    <td className="px-4 py-2 text-center">{product.sku}</td>
+                                    <td className="px-4 py-2 text-center">{product.dimensions || "-"}</td>
+                                    <td className="px-4 py-2 text-center">{product.material || "-"}</td>
+                                    <td className="px-4 py-2 text-center">{product.category_name}</td>
+                                    <td className="px-4 py-2 text-center">{formatDate(product.created_at)}</td>
                                 </tr>
                             ))
                         )}
