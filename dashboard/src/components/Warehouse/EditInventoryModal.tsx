@@ -8,7 +8,7 @@ type InventoryItem = {
     id: number;
     warehouse_id: number;
     product_id: number;
-    stock_quantity: number;
+    stock: number;
     min_stock_level: number;
     max_stock_level: number | null;
     last_updated: string;
@@ -33,11 +33,11 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
                                                                    onClose,
                                                                    onSuccess
                                                                }) => {
-    // Form state - initialize with values from the item
+    // Form state - initialize with values from the item (usando string para max_stock_level si es null)
     const [formData, setFormData] = useState({
-        stock_quantity: item.stock_quantity,
+        stock: item.stock,
         min_stock_level: item.min_stock_level,
-        max_stock_level: item.max_stock_level,
+        max_stock_level: item.max_stock_level === null ? '' : item.max_stock_level,
     });
 
     // Loading and error states
@@ -48,16 +48,20 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
         const { name, value, type } = e.target;
 
         if (type === 'number') {
-            // Handle number inputs
+            // Manejo seguro para valores numéricos
             if (value === '') {
-                // If empty, set to null or 0 depending on the field
+                // Si está vacío, configurar como string vacío (para max_stock_level) o 0 para los demás
                 if (name === 'max_stock_level') {
-                    setFormData(prev => ({ ...prev, [name]: null }));
+                    setFormData(prev => ({ ...prev, [name]: '' }));
                 } else {
                     setFormData(prev => ({ ...prev, [name]: 0 }));
                 }
             } else {
-                setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+                // Asegurarse de que es un número válido
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue)) {
+                    setFormData(prev => ({ ...prev, [name]: numValue }));
+                }
             }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
@@ -65,17 +69,22 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
     };
 
     const validateForm = () => {
-        if (formData.stock_quantity < 0) {
+        // Convertir a número para validación
+        const stockQty = Number(formData.stock);
+        const minLevel = Number(formData.min_stock_level);
+        const maxLevel = formData.max_stock_level === '' ? null : Number(formData.max_stock_level);
+
+        if (isNaN(stockQty) || stockQty < 0) {
             setError('La cantidad de stock no puede ser negativa');
             return false;
         }
 
-        if (formData.min_stock_level < 0) {
+        if (isNaN(minLevel) || minLevel < 0) {
             setError('El nivel mínimo de stock no puede ser negativo');
             return false;
         }
 
-        if (formData.max_stock_level !== null && formData.max_stock_level < formData.min_stock_level) {
+        if (maxLevel !== null && (isNaN(maxLevel) || maxLevel < minLevel)) {
             setError('El nivel máximo de stock debe ser mayor que el nivel mínimo');
             return false;
         }
@@ -92,14 +101,19 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
         setLoading(true);
 
         try {
+            // Preparar datos para actualizar
+            const updateData = {
+                stock: Number(formData.stock),
+                min_stock_level: Number(formData.min_stock_level),
+                max_stock_level: formData.max_stock_level === '' ? null : Number(formData.max_stock_level),
+                last_updated: new Date().toISOString()
+            };
+
+            console.log('Actualizando datos de inventario:', updateData);
+
             const { error: updateError } = await supabase
                 .from('warehouse_inventory')
-                .update({
-                    stock_quantity: formData.stock_quantity,
-                    min_stock_level: formData.min_stock_level,
-                    max_stock_level: formData.max_stock_level,
-                    last_updated: new Date().toISOString()
-                })
+                .update(updateData)
                 .eq('id', item.id);
 
             if (updateError) throw updateError;
@@ -154,8 +168,8 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
                             </label>
                             <input
                                 type="number"
-                                name="stock_quantity"
-                                value={formData.stock_quantity}
+                                name="stock"
+                                value={formData.stock}
                                 onChange={handleInputChange}
                                 min="0"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -184,10 +198,11 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({
                             <input
                                 type="number"
                                 name="max_stock_level"
-                                value={formData.max_stock_level === null ? '' : formData.max_stock_level}
+                                value={formData.max_stock_level}
                                 onChange={handleInputChange}
                                 min="0"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                placeholder="Opcional"
                             />
                             <p className="text-xs text-gray-500 mt-1">Capacidad máxima recomendada (opcional)</p>
                         </div>

@@ -9,7 +9,7 @@ type InventoryItem = {
     id: number;
     warehouse_id: number;
     product_id: number;
-    stock_quantity: number;
+    stock: number;
     min_stock_level: number;
     max_stock_level: number | null;
     last_updated: string;
@@ -17,6 +17,14 @@ type InventoryItem = {
     product_name?: string;
     product_sku?: string;
     category_name?: string;
+    products?: {
+        id: number;
+        name: string;
+        sku: string;
+        categories?: {
+            name: string;
+        };
+    };
 };
 
 type SortDirection = 'asc' | 'desc';
@@ -46,29 +54,60 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
             setLoading(true);
             setError(null);
 
+            console.log(`Fetching inventory for warehouse ID: ${warehouseId}`);
+
             // Join with products to get product details
             const { data, error } = await supabase
                 .from('warehouse-detail')
                 .select(`
-                    *,
+                    id,
+                    warehouse_id,
+                    product_id,
+                    stock,
+                    min_stock_level,
+                    max_stock_level,
+                    last_updated,
                     products:product_id (
                         id,
                         name, 
                         sku,
-                        categories:category_id (name)
+                        category_id,
+                        categories:category_id (
+                            id,
+                            name
+                        )
                     )
                 `)
                 .eq('warehouse_id', warehouseId);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
+
+            console.log('Inventory data fetched:', data?.length, 'items');
+            if (data && data.length > 0) {
+                console.log('Sample inventory item:', data[0]);
+            }
 
             // Transform data to include joined fields at the top level
-            const formattedItems = data.map(item => ({
-                ...item,
-                product_name: item.products?.name || 'Producto desconocido',
-                product_sku: item.products?.sku || 'N/A',
-                category_name: item.products?.categories?.name || 'Sin categoría'
-            }));
+            const formattedItems = data?.map(item => {
+                // Ensure products exists before trying to access properties
+                const productName = item.products?.name || 'Producto desconocido';
+                const productSku = item.products?.sku || 'N/A';
+                // Handle potentially nested category data
+                let categoryName = 'Sin categoría';
+                if (item.products?.categories) {
+                    categoryName = item.products.categories.name || 'Sin categoría';
+                }
+
+                return {
+                    ...item,
+                    product_name: productName,
+                    product_sku: productSku,
+                    category_name: categoryName
+                };
+            }) || [];
 
             setInventoryItems(formattedItems);
         } catch (err) {
@@ -108,8 +147,10 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
     // Delete selected items after confirmation
     const handleDeleteConfirmed = async () => {
         try {
+            console.log('Deleting inventory items:', selectedItemIds);
+
             const { error } = await supabase
-                .from('warehouse_inventory')
+                .from('warehouse-detail')
                 .delete()
                 .in('id', selectedItemIds);
 
@@ -160,15 +201,15 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
 
         // Then apply sorting
         if (sortField) {
-            return [...filteredItems].sort((valueA, valueB) => {
+            return [...filteredItems].sort((a, b) => {
                 // Handle different types of fields appropriately
-                const safeValueA = valueA ?? '';
-                const safeValueB = valueB ?? '';
+                const valueA = a[sortField] !== undefined ? a[sortField] : '';
+                const valueB = b[sortField] !== undefined ? b[sortField] : '';
 
-                if (safeValueA < safeValueB) {
+                if (valueA < valueB) {
                     return sortDirection === 'asc' ? -1 : 1;
                 }
-                if (safeValueA > safeValueB) {
+                if (valueA > valueB) {
                     return sortDirection === 'asc' ? 1 : -1;
                 }
                 return 0;
@@ -200,12 +241,12 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
 
     // Check if stock is low (below min_stock_level)
     const isStockLow = (item: InventoryItem) => {
-        return item.stock_quantity < item.min_stock_level;
+        return item.stock < item.min_stock_level;
     };
 
     // Check if stock is high (above max_stock_level, if set)
     const isStockHigh = (item: InventoryItem) => {
-        return item.max_stock_level !== null && item.stock_quantity > item.max_stock_level;
+        return item.max_stock_level !== null && item.stock > item.max_stock_level;
     };
 
     return (
@@ -288,8 +329,8 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                                     <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('category_name')}>
                                         Categoría {renderSortIndicator('category_name')}
                                     </th>
-                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('stock_quantity')}>
-                                        Stock {renderSortIndicator('stock_quantity')}
+                                    <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('stock')}>
+                                        Stock {renderSortIndicator('stock')}
                                     </th>
                                     <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('min_stock_level')}>
                                         Mín {renderSortIndicator('min_stock_level')}
@@ -334,7 +375,7 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                                                             ? 'text-yellow-600 font-medium'
                                                             : ''
                                                 }`}>
-                                                    {item.stock_quantity}
+                                                    {item.stock}
                                                 </span>
                                         </td>
                                         <td className="px-4 py-2">{item.min_stock_level}</td>
