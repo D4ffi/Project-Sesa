@@ -17,6 +17,10 @@ interface Category {
 // URL del backend
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Variable de entorno para determinar el método de almacenamiento
+const STORAGE_METHOD = import.meta.env.VITE_STORAGE_METHOD || 'S3'; // Valores posibles: 'S3' o 'SUPABASE'
+const SUPABASE_BUCKET_NAME = import.meta.env.VITE_SUPABASE_BUCKET_NAME || 'products';
+
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
     // Product form state
     const [formData, setFormData] = useState({
@@ -162,6 +166,59 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         return true;
     };
 
+    // Función para subir imágenes a Supabase Storage
+    const uploadImagesToSupabase = async (productId: number) => {
+        if (selectedFiles.length === 0) return [];
+
+        try {
+            const uploadResults = [];
+            const productDir = `products/${productId}`;
+            setUploadProgress(10); // Progreso inicial
+
+            // Calcular incremento de progreso por imagen
+            const progressIncrement = 60 / selectedFiles.length;
+
+            // Procesar cada archivo
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+                const s3Path = `${productDir}/${fileName}`;
+
+                // Subir a Supabase Storage
+                const {error } = await supabase.storage
+                    .from(SUPABASE_BUCKET_NAME)
+                    .upload(s3Path, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (error) throw error;
+
+                // Obtener URL pública del archivo
+                const { data: publicUrlData } = supabase.storage
+                    .from(SUPABASE_BUCKET_NAME)
+                    .getPublicUrl(s3Path);
+
+                // Agregar resultado
+                uploadResults.push({
+                    originalName: file.name,
+                    fileName: fileName,
+                    s3Url: publicUrlData.publicUrl,
+                    path: s3Path
+                });
+
+                // Actualizar progreso
+                setUploadProgress(10 + (i + 1) * progressIncrement);
+            }
+
+            setUploadProgress(70); // Progreso después de subir imágenes
+            return uploadResults;
+        } catch (error) {
+            console.error('Error al subir imágenes a Supabase:', error);
+            throw error;
+        }
+    };
+
     // Función para subir imágenes a S3 a través del backend
     const uploadImagesToS3 = async (productId: number) => {
         if (selectedFiles.length === 0) return [];
@@ -195,7 +252,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             const result = await response.json();
             return result.files;
         } catch (error) {
-            console.error('Error uploading images:', error);
+            console.error('Error uploading images to S3:', error);
 
             // Manejo específico de errores
             if (error instanceof Error && error.name === 'AbortError') {
@@ -203,6 +260,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             }
 
             throw error;
+        }
+    };
+
+    // Función para subir imágenes seleccionando el método según la configuración
+    const uploadImages = async (productId: number) => {
+        console.log(`Usando método de almacenamiento: ${STORAGE_METHOD}`);
+
+        if (STORAGE_METHOD === 'SUPABASE') {
+            return await uploadImagesToSupabase(productId);
+        } else {
+            // Método por defecto: S3
+            return await uploadImagesToS3(productId);
         }
     };
 
@@ -236,10 +305,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             const productId = productData.id;
             setUploadProgress(30); // Progreso después de crear el producto
 
-            // Subir imágenes a S3 si hay archivos seleccionados
+            // Subir imágenes según el método configurado
+            let uploadedFiles = [];
             if (selectedFiles.length > 0) {
-                // Subir imágenes a S3 a través del backend
-                const uploadedFiles = await uploadImagesToS3(productId);
+                uploadedFiles = await uploadImages(productId);
                 setUploadProgress(70); // Progreso después de subir imágenes
 
                 // Insertar información de las imágenes en Supabase
@@ -254,7 +323,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                             url: file.s3Url,
                             is_primary: isPrimary,
                             alt_text: imageAltTexts[i] || formData.name,
-                            path: file.path // Guardamos la ruta en S3 por si necesitamos eliminar la imagen después
+                            path: file.path // Guardamos la ruta en S3 o Supabase por si necesitamos eliminar la imagen después
                         });
 
                     if (imageError) throw imageError;
@@ -454,6 +523,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                         {/* Image Uploads */}
                         <div className="space-y-4">
                             <h3 className="font-semibold text-gray-700 border-b pb-2">Imágenes del Producto</h3>
+
+                            <div>
+                                <p className="text-xs text-gray-500 mb-2">
+                                    Usando método de almacenamiento: {STORAGE_METHOD}
+                                </p>
+                            </div>
 
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                                 <input
