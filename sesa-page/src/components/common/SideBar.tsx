@@ -57,7 +57,7 @@ const SideBar = ({ onClose, isClosing, isOpening }: SideBarProps) => {
                     <MenuButton name="Home" icon={LucideHouse} to="/" />
                 </div>
                 <div onClick={onClose}>
-                    <MenuButton name="Products" icon={LucideShoppingBag} to="/disable" />
+                    <MenuButton name="Products" icon={LucideShoppingBag} to="/products" />
                 </div>
                 <div onClick={onClose}>
                     <MenuButton name="Services" icon={LucideShapes} to="/services" />

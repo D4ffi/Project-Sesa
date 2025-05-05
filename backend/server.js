@@ -136,6 +136,46 @@ async function uploadWithRetry(params, maxRetries = 3) {
     }
 }
 
+// Agregar a server.js
+// Endpoint para eliminar imágenes de S3
+app.post('/api/delete-images', async (req, res) => {
+    try {
+        const { paths } = req.body;
+
+        if (!paths || !Array.isArray(paths) || paths.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Se requiere un array de rutas'
+            });
+        }
+
+        // Eliminar cada imagen de S3
+        const deletePromises = paths.map(path => {
+            const params = {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: path
+            };
+
+            return s3.deleteObject(params).promise();
+        });
+
+        // Esperar a que se completen todas las eliminaciones
+        await Promise.all(deletePromises);
+
+        res.status(200).json({
+            success: true,
+            message: `${paths.length} imágenes eliminadas correctamente`
+        });
+    } catch (error) {
+        console.error('Error al eliminar imágenes de S3:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar imágenes',
+            error: error.message
+        });
+    }
+});
+
 // Middleware para manejar errores de multer antes del manejador general
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {

@@ -94,15 +94,72 @@ const ProductTable: React.FC = () => {
         setIsDeleteModalOpen(true);
     };
 
-    // Delete selected products after confirmation
+    // Modificación para handleDeleteConfirmed en ProductTable.tsx
     const handleDeleteConfirmed = async () => {
         try {
-            const { error } = await supabase
+            setLoading(true);
+
+            // 1. Primero recuperar las rutas de las imágenes de los productos a eliminar
+            const { data: imageData, error: imageError } = await supabase
+                .from('product_images')
+                .select('id, path')
+                .in('product_id', selectedProductIds);
+
+            if (imageError) throw imageError;
+
+            // 2. Eliminar las imágenes del bucket (si STORAGE_METHOD es SUPABASE)
+            const STORAGE_METHOD = import.meta.env.VITE_STORAGE_METHOD || 'S3';
+            const SUPABASE_BUCKET_NAME = import.meta.env.VITE_SUPABASE_BUCKET_NAME || 'products';
+
+            if (imageData && imageData.length > 0) {
+                if (STORAGE_METHOD === 'SUPABASE') {
+                    // Eliminar imágenes del bucket de Supabase
+                    for (const image of imageData) {
+                        const { error: deleteError } = await supabase.storage
+                            .from(SUPABASE_BUCKET_NAME)
+                            .remove([image.path]);
+
+                        if (deleteError) {
+                            console.error('Error al eliminar imagen:', deleteError, image.path);
+                        }
+                    }
+                } else {
+                    // Método S3 - Necesitarás implementar una llamada a tu backend
+                    // para eliminar las imágenes de S3
+                    try {
+                        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                        const imagePaths = imageData.map(img => img.path);
+
+                        await fetch(`${API_URL}/api/delete-images`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                paths: imagePaths
+                            })
+                        });
+                    } catch (err) {
+                        console.error('Error al eliminar imágenes de S3:', err);
+                    }
+                }
+            }
+
+            // 3. Eliminar las entradas de product_images
+            const { error: deleteImagesError } = await supabase
+                .from('product_images')
+                .delete()
+                .in('product_id', selectedProductIds);
+
+            if (deleteImagesError) throw deleteImagesError;
+
+            // 4. Finalmente eliminar los productos
+            const { error: deleteProductsError } = await supabase
                 .from('products')
                 .delete()
                 .in('id', selectedProductIds);
 
-            if (error) throw error;
+            if (deleteProductsError) throw deleteProductsError;
 
             // Refresh product list
             fetchProducts();
@@ -113,6 +170,8 @@ const ProductTable: React.FC = () => {
         } catch (err) {
             console.error('Error deleting products:', err);
             setError(err instanceof Error ? err.message : 'Error al eliminar productos');
+        } finally {
+            setLoading(false);
         }
     };
 
