@@ -39,9 +39,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         id: product.id,
         category_id: product.category_id,
         name: product.name,
-        description: product.description,
+        description: product.description || '',
         price: product.price,
-        sku: product.sku,
+        sku: product.sku || '',
         dimensions: product.dimensions || '',  // Initialize dimensions
         material: product.material || ''       // Initialize material
     });
@@ -54,6 +54,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                setLoading(true);
                 const { data, error } = await supabase
                     .from('categories')
                     .select('id, name')
@@ -62,8 +63,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                 if (error) throw error;
 
                 setCategories(data || []);
+                setLoading(false);
             } catch (err) {
                 console.error('Error fetching categories:', err);
+                setLoading(false);
             }
         };
 
@@ -88,28 +91,59 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         }
     };
 
+    // Validate form inputs
+    const validateForm = () => {
+        if (!formData.name.trim()) {
+            setError('El nombre del producto es obligatorio');
+            return false;
+        }
+
+        if (!formData.category_id) {
+            setError('La categoría es obligatoria');
+            return false;
+        }
+
+        if (formData.price <= 0) {
+            setError('El precio debe ser mayor que cero');
+            return false;
+        }
+
+        return true;
+    };
+
     // Submit form
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
+            // Prepare update data with proper handling for optional fields
+            // Convert empty strings to null for optional fields
+            const updateData = {
+                category_id: formData.category_id,
+                name: formData.name.trim(),
+                description: formData.description.trim() || null,
+                price: formData.price,
+                sku: formData.sku.trim() || null,
+                dimensions: formData.dimensions?.trim() || null,  // Handle dimensions
+                material: formData.material?.trim() || null       // Handle material     // Handle material
+            };
+
             const { error } = await supabase
                 .from('products')
-                .update({
-                    category_id: formData.category_id,
-                    name: formData.name,
-                    description: formData.description,
-                    price: formData.price,
-                    sku: formData.sku,
-                    dimensions: formData.dimensions || null,  // Include dimensions
-                    material: formData.material || null       // Include material
-                })
+                .update(updateData)
                 .eq('id', product.id);
 
             if (error) throw error;
 
+            // Notify parent of successful update
             onSuccess();
         } catch (err) {
             console.error('Error updating product:', err);
@@ -143,7 +177,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
                     <div className="mb-4">
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                            Nombre
+                            Nombre <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -167,13 +201,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             onChange={handleChange}
                             rows={3}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            required
                         ></textarea>
                     </div>
 
                     <div className="mb-4">
                         <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
-                            Categoría
+                            Categoría <span className="text-red-500">*</span>
                         </label>
                         <select
                             id="category_id"
@@ -194,7 +227,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
                     <div className="mb-4">
                         <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                            Precio
+                            Precio <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -203,7 +236,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             value={formData.price}
                             onChange={handleChange}
                             step="0.01"
-                            min="0"
+                            min="0.01"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                             required
                         />
@@ -219,12 +252,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             name="sku"
                             value={formData.sku}
                             onChange={handleChange}
+                            placeholder="Opcional"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            required
                         />
                     </div>
 
-                    {/* New field: Dimensions */}
+                    {/* Dimensions field */}
                     <div className="mb-4">
                         <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700 mb-1">
                             Dimensiones
@@ -235,12 +268,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             name="dimensions"
                             value={formData.dimensions}
                             onChange={handleChange}
-                            placeholder="Ejemplo: 10x15x5 cm"
+                            placeholder="Ejemplo: 10x15x5 cm (Opcional)"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
                     </div>
 
-                    {/* New field: Material */}
+                    {/* Material field */}
                     <div className="mb-4">
                         <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">
                             Material
@@ -251,7 +284,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                             name="material"
                             value={formData.material}
                             onChange={handleChange}
-                            placeholder="Ejemplo: Algodón, Cerámica, etc."
+                            placeholder="Ejemplo: Algodón, Cerámica, etc. (Opcional)"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
                     </div>
