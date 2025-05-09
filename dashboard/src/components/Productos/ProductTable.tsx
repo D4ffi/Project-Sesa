@@ -189,6 +189,8 @@ const ProductTable: React.FC = () => {
     const handleProductUpdated = () => {
         fetchProducts();
         setEditingProduct(null);
+        // Clear selection state after successful edit
+        setSelectedProductIds([]);
     };
 
     // Handle sorting
