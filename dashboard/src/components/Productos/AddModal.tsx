@@ -1,7 +1,11 @@
+// dashboard/src/components/Productos/AddModal.tsx-modificado
+// Versión modificada del componente AddModal.tsx existente para integrar la carga de imágenes
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Image as ImageIcon, Info } from 'lucide-react';
+import { X } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
+import MultipleImageUploader from './MultipleImageUploader';
 
+// Definición de tipos
 interface ProductModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -14,41 +18,34 @@ interface Category {
     description?: string;
 }
 
-// URL del backend
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+interface ProductImage {
+    url: string;
+    path: string;
+    isPrimary: boolean;
+}
 
-// Variable de entorno para determinar el método de almacenamiento
-const STORAGE_METHOD = import.meta.env.VITE_STORAGE_METHOD || 'S3'; // Valores posibles: 'S3' o 'SUPABASE'
-const SUPABASE_BUCKET_NAME = import.meta.env.VITE_SUPABASE_BUCKET_NAME || 'products';
-
+// Componente de modal para añadir productos
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
-    // Product form state
+    // Estado del formulario
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         price: '',
         sku: '',
         category_id: '',
-        dimensions: '',   // New field for dimensions
-        material: '',     // New field for material
+        dimensions: '',
+        material: '',
     });
 
-    // Images handling
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
-    const [imageAltTexts, setImageAltTexts] = useState<string[]>([]);
+    // Estado para imágenes
+    const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
-    // Categories for dropdown
+    // Estados auxiliares
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [uploadProgress, setUploadProgress] = useState(0);
 
-    // Display info about selected category
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-    const [showCategoryInfo, setShowCategoryInfo] = useState(false);
-
-    // Fetch categories on component mount
+    // Obtener categorías al montar el componente
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -62,7 +59,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
 
                 setCategories(data || []);
             } catch (err) {
-                console.error('Error fetching categories:', err);
+                console.error('Error al cargar categorías:', err);
                 setError('Error al cargar categorías. Por favor, intente nuevamente.');
             } finally {
                 setLoading(false);
@@ -72,81 +69,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         if (isOpen) fetchCategories();
     }, [isOpen]);
 
-    // Update selected category when category_id changes
-    useEffect(() => {
-        if (formData.category_id) {
-            const categoryId = parseInt(formData.category_id);
-            const category = categories.find(cat => cat.id === categoryId) || null;
-            setSelectedCategory(category);
-        } else {
-            setSelectedCategory(null);
-        }
-    }, [formData.category_id, categories]);
-
+    // Manejar cambios en los inputs
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const filesArray = Array.from(e.target.files);
-
-            // Validar tamaño de archivos (5MB por archivo)
-            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB en bytes
-            const oversizedFiles = filesArray.filter(file => file.size > MAX_FILE_SIZE);
-
-            if (oversizedFiles.length > 0) {
-                setError(`Los siguientes archivos exceden el límite de 5MB: ${
-                    oversizedFiles.map(f => f.name).join(', ')
-                }`);
-                return;
-            }
-
-            // Validar número máximo de archivos (10 en total)
-            if (selectedFiles.length + filesArray.length > 10) {
-                setError('No puedes subir más de 10 imágenes por producto');
-                return;
-            }
-
-            // Validar tipo de archivo (solo imágenes)
-            const invalidFiles = filesArray.filter(file => !file.type.startsWith('image/'));
-            if (invalidFiles.length > 0) {
-                setError(`Los siguientes archivos no son imágenes: ${
-                    invalidFiles.map(f => f.name).join(', ')
-                }`);
-                return;
-            }
-
-            setError(null);
-            setSelectedFiles(prev => [...prev, ...filesArray]);
-
-            // Initialize alt texts for new images
-            setImageAltTexts(prev => [
-                ...prev,
-                ...Array(filesArray.length).fill('')
-            ]);
-        }
-    };
-
-    const removeImage = (index: number) => {
-        setSelectedFiles(files => files.filter((_, i) => i !== index));
-        setImageAltTexts(texts => texts.filter((_, i) => i !== index));
-
-        // Adjust primary image index if needed
-        if (primaryImageIndex === index) {
-            setPrimaryImageIndex(0);
-        } else if (primaryImageIndex > index) {
-            setPrimaryImageIndex(primaryImageIndex - 1);
-        }
-    };
-
-    const handleAltTextChange = (index: number, text: string) => {
-        const newAltTexts = [...imageAltTexts];
-        newAltTexts[index] = text;
-        setImageAltTexts(newAltTexts);
-    };
-
+    // Validar formulario
     const validateForm = () => {
         if (!formData.name.trim()) {
             setError('El nombre del producto es obligatorio');
@@ -166,115 +95,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         return true;
     };
 
-    // Función para subir imágenes a Supabase Storage
-    const uploadImagesToSupabase = async (productId: number) => {
-        if (selectedFiles.length === 0) return [];
-
-        try {
-            const uploadResults = [];
-            const productDir = `products/${productId}`;
-            setUploadProgress(10); // Progreso inicial
-
-            // Calcular incremento de progreso por imagen
-            const progressIncrement = 60 / selectedFiles.length;
-
-            // Procesar cada archivo
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-                const s3Path = `${productDir}/${fileName}`;
-
-                // Subir a Supabase Storage
-                const {error } = await supabase.storage
-                    .from(SUPABASE_BUCKET_NAME)
-                    .upload(s3Path, file, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (error) throw error;
-
-                // Obtener URL pública del archivo
-                const { data: publicUrlData } = supabase.storage
-                    .from(SUPABASE_BUCKET_NAME)
-                    .getPublicUrl(s3Path);
-
-                // Agregar resultado
-                uploadResults.push({
-                    originalName: file.name,
-                    fileName: fileName,
-                    s3Url: publicUrlData.publicUrl,
-                    path: s3Path
-                });
-
-                // Actualizar progreso
-                setUploadProgress(10 + (i + 1) * progressIncrement);
-            }
-
-            setUploadProgress(70); // Progreso después de subir imágenes
-            return uploadResults;
-        } catch (error) {
-            console.error('Error al subir imágenes a Supabase:', error);
-            throw error;
-        }
+    // Manejar cambios en las imágenes
+    const handleImagesChange = (images: ProductImage[]) => {
+        setProductImages(images);
     };
 
-    // Función para subir imágenes a S3 a través del backend
-    const uploadImagesToS3 = async (productId: number) => {
-        if (selectedFiles.length === 0) return [];
-
-        try {
-            const formData = new FormData();
-            formData.append('productId', productId.toString());
-
-            // Agregar todas las imágenes al FormData
-            selectedFiles.forEach((file) => {
-                formData.append('images', file);
-            });
-
-            // Enviar las imágenes al endpoint del backend con manejo de timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos de timeout para archivos grandes
-
-            const response = await fetch(`${API_URL}/api/upload`, {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-            }).finally(() => {
-                clearTimeout(timeoutId);
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al subir imágenes');
-            }
-
-            const result = await response.json();
-            return result.files;
-        } catch (error) {
-            console.error('Error uploading images to S3:', error);
-
-            // Manejo específico de errores
-            if (error instanceof Error && error.name === 'AbortError') {
-                throw new Error('La carga de imágenes ha excedido el tiempo máximo. Intenta con archivos más pequeños o menos archivos.');
-            }
-
-            throw error;
-        }
-    };
-
-    // Función para subir imágenes seleccionando el método según la configuración
-    const uploadImages = async (productId: number) => {
-        console.log(`Usando método de almacenamiento: ${STORAGE_METHOD}`);
-
-        if (STORAGE_METHOD === 'SUPABASE') {
-            return await uploadImagesToSupabase(productId);
-        } else {
-            // Método por defecto: S3
-            return await uploadImagesToS3(productId);
-        }
-    };
-
+    // Enviar formulario
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -282,10 +108,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
         if (!validateForm()) return;
 
         setLoading(true);
-        setUploadProgress(0);
 
         try {
-            // Insertar producto en Supabase
+            // 1. Insertar producto en Supabase
             const { data: productData, error: productError } = await supabase
                 .from('products')
                 .insert({
@@ -294,8 +119,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                     price: parseFloat(formData.price),
                     sku: formData.sku || null,
                     category_id: parseInt(formData.category_id),
-                    dimensions: formData.dimensions || null,  // Include dimensions
-                    material: formData.material || null,      // Include material
+                    dimensions: formData.dimensions || null,
+                    material: formData.material || null,
                 })
                 .select('id')
                 .single();
@@ -303,36 +128,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
             if (productError) throw productError;
 
             const productId = productData.id;
-            setUploadProgress(30); // Progreso después de crear el producto
 
-            // Subir imágenes según el método configurado
-            let uploadedFiles = [];
-            if (selectedFiles.length > 0) {
-                uploadedFiles = await uploadImages(productId);
-                setUploadProgress(70); // Progreso después de subir imágenes
+            // 2. Insertar información de las imágenes en Supabase
+            if (productImages.length > 0) {
+                const productImagesData = productImages.map(img => ({
+                    product_id: productId,
+                    url: img.url,
+                    is_primary: img.isPrimary,
+                    alt_text: formData.name,
+                    path: img.path
+                }));
 
-                // Insertar información de las imágenes en Supabase
-                for (let i = 0; i < uploadedFiles.length; i++) {
-                    const file = uploadedFiles[i];
-                    const isPrimary = i === primaryImageIndex;
+                const { error: imageError } = await supabase
+                    .from('product_images')
+                    .insert(productImagesData);
 
-                    const { error: imageError } = await supabase
-                        .from('product_images')
-                        .insert({
-                            product_id: productId,
-                            url: file.s3Url,
-                            is_primary: isPrimary,
-                            alt_text: imageAltTexts[i] || formData.name,
-                            path: file.path // Guardamos la ruta en S3 o Supabase por si necesitamos eliminar la imagen después
-                        });
-
-                    if (imageError) throw imageError;
-                }
+                if (imageError) throw imageError;
             }
 
-            setUploadProgress(100); // Progreso completado
-
-            // Reset form
+            // Restablecer formulario
             setFormData({
                 name: '',
                 description: '',
@@ -342,20 +156,17 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                 dimensions: '',
                 material: '',
             });
-            setSelectedFiles([]);
-            setImageAltTexts([]);
-            setPrimaryImageIndex(0);
+            setProductImages([]);
 
-            // Notify parent and close modal
+            // Notificar al componente padre y cerrar modal
             onSuccess();
             onClose();
 
         } catch (err) {
-            console.error('Error adding product:', err);
+            console.error('Error al añadir producto:', err);
             setError(err instanceof Error ? err.message : 'Ha ocurrido un error al guardar el producto');
         } finally {
             setLoading(false);
-            setUploadProgress(0);
         }
     };
 
@@ -382,7 +193,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Product Information */}
+                        {/* Información del Producto */}
                         <div className="space-y-4">
                             <h3 className="font-semibold text-gray-700 border-b pb-2">Información del Producto</h3>
 
@@ -404,45 +215,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
                                     Categoría <span className="text-red-500">*</span>
                                 </label>
-                                <div className="flex items-center space-x-2">
-                                    <select
-                                        name="category_id"
-                                        value={formData.category_id}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                        required
-                                    >
-                                        <option value="">Seleccionar categoría</option>
-                                        {categories.map(category => (
-                                            <option key={category.id} value={category.id}>
-                                                {category.name} (ID: {category.id})
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                    {formData.category_id && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowCategoryInfo(!showCategoryInfo)}
-                                            className="p-2 text-blue-500 hover:text-blue-700 focus:outline-none"
-                                        >
-                                            <Info size={20} />
-                                        </button>
-                                    )}
-                                </div>
+                                <select
+                                    name="category_id"
+                                    value={formData.category_id}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                >
+                                    <option value="">Seleccionar categoría</option>
+                                    {categories.map(category => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-
-                            {/* Category info display */}
-                            {showCategoryInfo && selectedCategory && (
-                                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                    <h4 className="font-semibold text-sm text-blue-800">Detalles de la categoría</h4>
-                                    <p className="text-sm text-blue-700">ID: {selectedCategory.id}</p>
-                                    <p className="text-sm text-blue-700">Nombre: {selectedCategory.name}</p>
-                                    {selectedCategory.description && (
-                                        <p className="text-sm text-blue-700">Descripción: {selectedCategory.description}</p>
-                                    )}
-                                </div>
-                            )}
 
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
@@ -476,7 +263,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                 />
                             </div>
 
-                            {/* New field: Dimensions */}
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
                                     Dimensiones
@@ -491,7 +277,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                                 />
                             </div>
 
-                            {/* New field: Material */}
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-1">
                                     Material
@@ -520,126 +305,17 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSuccess 
                             </div>
                         </div>
 
-                        {/* Image Uploads */}
+                        {/* Imágenes */}
                         <div className="space-y-4">
                             <h3 className="font-semibold text-gray-700 border-b pb-2">Imágenes del Producto</h3>
 
-                            <div>
-                                <p className="text-xs text-gray-500 mb-2">
-                                    Usando método de almacenamiento: {STORAGE_METHOD}
-                                </p>
-                            </div>
-
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                                <input
-                                    type="file"
-                                    id="product-images"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                />
-                                <label
-                                    htmlFor="product-images"
-                                    className="cursor-pointer flex flex-col items-center justify-center"
-                                >
-                                    <Upload size={40} className="text-gray-400 mb-2" />
-                                    <p className="text-gray-500">Haz clic para seleccionar imágenes</p>
-                                    <p className="text-xs text-gray-400 mt-1">o arrastra y suelta aquí</p>
-                                    <div className="mt-3 text-xs text-gray-500">
-                                        <p>Máximo 10 imágenes por producto</p>
-                                        <p>Tamaño máximo: 5MB por imagen</p>
-                                        <p>Formatos aceptados: JPG, PNG, GIF, WebP</p>
-                                    </div>
-                                </label>
-                            </div>
-
-                            {selectedFiles.length > 0 && (
-                                <div className="space-y-3">
-                                    <p className="text-sm text-gray-600">
-                                        Imágenes seleccionadas ({selectedFiles.length})
-                                    </p>
-
-                                    {selectedFiles.map((file, index) => (
-                                        <div key={index} className="border rounded-lg p-3 flex items-start space-x-4">
-                                            <div className="flex-shrink-0 w-16 h-16 bg-gray-100 flex items-center justify-center rounded">
-                                                <ImageIcon size={28} className="text-gray-400" />
-                                            </div>
-
-                                            <div className="flex-grow">
-                                                <div className="flex justify-between">
-                                                    <p className="text-sm font-medium text-gray-700 truncate">
-                                                        {file.name}
-                                                    </p>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeImage(index)}
-                                                        className="text-gray-400 hover:text-red-500"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </div>
-
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {(file.size / 1024).toFixed(1)} KB
-                                                </p>
-
-                                                <div className="mt-2 space-y-2">
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="radio"
-                                                            id={`primary-${index}`}
-                                                            name="primary-image"
-                                                            checked={primaryImageIndex === index}
-                                                            onChange={() => setPrimaryImageIndex(index)}
-                                                            className="mr-2"
-                                                        />
-                                                        <label htmlFor={`primary-${index}`} className="text-xs text-gray-600">
-                                                            Imagen principal
-                                                        </label>
-                                                    </div>
-
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Texto alternativo"
-                                                        value={imageAltTexts[index] || ''}
-                                                        onChange={(e) => handleAltTextChange(index, e.target.value)}
-                                                        className="w-full text-xs px-2 py-1 border border-gray-300 rounded"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            {/* Componente para múltiples imágenes */}
+                            <MultipleImageUploader
+                                onImagesChange={handleImagesChange}
+                                maxImages={5}
+                            />
                         </div>
                     </div>
-
-                    {/* Barra de progreso (visible durante la carga) */}
-                    {loading && uploadProgress > 0 && (
-                        <div className="mt-4">
-                            <div className="relative pt-1">
-                                <div className="flex mb-2 items-center justify-between">
-                                    <div>
-                                        <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-orange-600 bg-orange-200">
-                                            {uploadProgress < 100 ? 'Subiendo...' : 'Completado'}
-                                        </span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-xs font-semibold inline-block text-orange-600">
-                                            {uploadProgress}%
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-orange-200">
-                                    <div
-                                        style={{ width: `${uploadProgress}%` }}
-                                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-orange-500 transition-all duration-500">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     <div className="mt-8 border-t pt-6 flex justify-end space-x-3">
                         <button

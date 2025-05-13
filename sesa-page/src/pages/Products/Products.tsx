@@ -1,19 +1,23 @@
+// sesa-page/src/pages/Products/Products.tsx
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient.ts';
-import ProductCard from '../../components/products/ProductCard.tsx';
+import { supabase } from '../../utils/supabaseClient';
+import ProductCard from '../../components/products/ProductCard';
 import { Product, transformProductData } from '../../types/product';
 import Layout from '../../components/common/Layout';
 import { Search } from 'lucide-react';
 
-// Types for filtering and sorting
+// Tipos para filtrado y ordenamiento
 type SortOption = {
     field: keyof Product;
     direction: 'asc' | 'desc';
     label: string;
 };
 
+/**
+ * Página de productos mejorada que carga imágenes desde Supabase Storage
+ */
 const ProductPage: React.FC = () => {
-    // State
+    // Estado
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +30,7 @@ const ProductPage: React.FC = () => {
         label: 'Nombre (A-Z)'
     });
 
-    // Sort options
+    // Opciones de ordenamiento
     const sortOptions: SortOption[] = [
         { field: 'name', direction: 'asc', label: 'Nombre (A-Z)' },
         { field: 'name', direction: 'desc', label: 'Nombre (Z-A)' },
@@ -34,45 +38,46 @@ const ProductPage: React.FC = () => {
         { field: 'price', direction: 'desc', label: 'Precio (mayor a menor)' },
     ];
 
-    // Fetch products and categories on component mount
+    // Obtener productos y categorías al montar el componente
     useEffect(() => {
         const fetchProductsAndCategories = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                // Fetch categories
+                // Obtener categorías
                 const { data: categoriesData, error: categoriesError } = await supabase
                     .from('categories')
                     .select('id, name')
                     .order('name', { ascending: true });
 
                 if (categoriesError) throw categoriesError;
-
                 setCategories(categoriesData || []);
 
-                // Fetch products with joined category information
+                // Obtener productos con información de categoría e imágenes
                 const { data: productsData, error: productsError } = await supabase
                     .from('products')
                     .select(`
             *,
             categories:category_id(id, name),
-            product_images(id, url, is_primary)
+            product_images(id, url, is_primary, alt_text)
           `);
 
                 if (productsError) throw productsError;
 
                 if (productsData) {
-                    // Transform the data to match our Product interface
+                    // Transformar los datos para que coincidan con nuestra interfaz Product
                     const formattedProducts: Product[] = productsData.map(product => {
-                        // Find primary image
+                        // Encontrar la imagen principal
                         const primaryImage = product.product_images?.find((img: any) => img.is_primary);
 
-                        // Transform to match our Product type
+                        // Si no hay imagen principal pero hay imágenes, usar la primera
+                        const firstImage = product.product_images?.length > 0 ? product.product_images[0] : null;
+
                         return {
                             ...transformProductData(product),
-                            // Add primary image URL if available
-                            primary_image_url: primaryImage?.url || undefined
+                            // Añadir URL de imagen principal si está disponible
+                            primary_image_url: primaryImage?.url || firstImage?.url || undefined
                         };
                     });
 
@@ -81,7 +86,7 @@ const ProductPage: React.FC = () => {
                     setProducts([]);
                 }
             } catch (err) {
-                console.error('Error fetching data:', err);
+                console.error('Error al obtener datos:', err);
                 setError(err instanceof Error ? err.message : 'Error al cargar los productos');
             } finally {
                 setLoading(false);
@@ -91,38 +96,40 @@ const ProductPage: React.FC = () => {
         fetchProductsAndCategories();
     }, []);
 
-    // Filter and sort products
+    // Filtrar y ordenar productos
     const getFilteredAndSortedProducts = () => {
         let filteredProducts = [...products];
 
-        // Filter by search term
+        // Filtrar por término de búsqueda
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filteredProducts = filteredProducts.filter(product =>
                 product.name.toLowerCase().includes(term) ||
                 (product.description && product.description.toLowerCase().includes(term)) ||
-                (product.sku && product.sku.toLowerCase().includes(term))
+                (product.sku && product.sku.toLowerCase().includes(term)) ||
+                (product.material && product.material.toLowerCase().includes(term)) ||
+                (product.dimensions && product.dimensions.toLowerCase().includes(term))
             );
         }
 
-        // Filter by category
+        // Filtrar por categoría
         if (selectedCategory !== null) {
             filteredProducts = filteredProducts.filter(product =>
                 product.category_id === selectedCategory
             );
         }
 
-        // Sort products
+        // Ordenar productos
         return filteredProducts.sort((a, b) => {
             const aValue = a[sortOption.field];
             const bValue = b[sortOption.field];
 
-            // Handle undefined values
+            // Manejar valores undefined
             if (aValue === undefined && bValue === undefined) return 0;
             if (aValue === undefined) return 1;
             if (bValue === undefined) return -1;
 
-            // Compare values based on sort direction
+            // Comparar valores según dirección de ordenamiento
             if (aValue < bValue) {
                 return sortOption.direction === 'asc' ? -1 : 1;
             }
@@ -133,9 +140,9 @@ const ProductPage: React.FC = () => {
         });
     };
 
-    // Handle product click
+    // Manejar clic en producto
     const handleProductClick = (product: Product) => {
-        // Navigate to product detail page
+        // Navegar a la página de detalle del producto
         window.location.href = `/product/${product.id}`;
     };
 
@@ -144,10 +151,10 @@ const ProductPage: React.FC = () => {
             <div className="container mx-auto py-8 px-4">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">Nuestros Productos</h1>
 
-                {/* Filters and Search */}
+                {/* Filtros y Búsqueda */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Search */}
+                        {/* Búsqueda */}
                         <div className="relative">
                             <input
                                 type="text"
@@ -159,7 +166,7 @@ const ProductPage: React.FC = () => {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         </div>
 
-                        {/* Category filter */}
+                        {/* Filtro de categoría */}
                         <div>
                             <select
                                 value={selectedCategory !== null ? selectedCategory : ''}
@@ -175,7 +182,7 @@ const ProductPage: React.FC = () => {
                             </select>
                         </div>
 
-                        {/* Sort options */}
+                        {/* Opciones de ordenamiento */}
                         <div>
                             <select
                                 value={`${sortOption.field}-${sortOption.direction}`}
@@ -198,7 +205,7 @@ const ProductPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Product Grid */}
+                {/* Grid de Productos */}
                 {loading ? (
                     <div className="flex justify-center items-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
@@ -209,12 +216,12 @@ const ProductPage: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Product count */}
+                        {/* Contador de productos */}
                         <div className="mb-4 text-gray-600">
                             Mostrando {getFilteredAndSortedProducts().length} productos
                         </div>
 
-                        {/* Product grid */}
+                        {/* Grid de productos */}
                         {getFilteredAndSortedProducts().length === 0 ? (
                             <div className="bg-gray-100 rounded-lg p-8 text-center">
                                 <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
