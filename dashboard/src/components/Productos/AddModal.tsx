@@ -1,5 +1,4 @@
-// dashboard/src/components/Productos/AddModal.tsx-modificado
-// Versión modificada del componente AddModal.tsx existente para integrar la carga de imágenes
+// dashboard/src/components/Productos/AddModal.tsx
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';

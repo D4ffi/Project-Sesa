@@ -41,8 +41,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
                 {/* Etiqueta de categoría - si está disponible */}
                 {product.category_name && (
                     <span className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">
-            {product.category_name}
-          </span>
+                        {product.category_name}
+                    </span>
                 )}
             </div>
 
@@ -57,11 +57,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
                 {/* Precio */}
                 <div className="flex items-center justify-between mt-2">
-          <span className="text-orange-500 font-bold">
-            ${typeof product.price === 'number'
-              ? product.price.toLocaleString('es-MX')
-              : product.price}
-          </span>
+                    <span className="text-orange-500 font-bold">
+                        ${typeof product.price === 'number'
+                        ? product.price.toLocaleString('es-MX')
+                        : product.price}
+                    </span>
 
                     {/* SKU si está disponible */}
                     {product.sku && (

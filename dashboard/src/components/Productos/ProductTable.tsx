@@ -3,6 +3,7 @@ import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucid
 import { supabase } from '../../utils/supabaseClient.ts';
 import EditProductModal from "./EditModal.tsx";
 import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
+import {STORAGE_BUCKET} from "../../utils/imageUtils.ts";
 
 // Product type based on your database schema
 type Product = {
@@ -94,7 +95,8 @@ const ProductTable: React.FC = () => {
         setIsDeleteModalOpen(true);
     };
 
-    // Modificación para handleDeleteConfirmed en ProductTable.tsx
+    // Modificación de la función handleDeleteConfirmed en ProductTable.tsx
+
     const handleDeleteConfirmed = async () => {
         try {
             setLoading(true);
@@ -107,40 +109,23 @@ const ProductTable: React.FC = () => {
 
             if (imageError) throw imageError;
 
-            // 2. Eliminar las imágenes del bucket (si STORAGE_METHOD es SUPABASE)
-            const STORAGE_METHOD = import.meta.env.VITE_STORAGE_METHOD || 'S3';
-            const SUPABASE_BUCKET_NAME = import.meta.env.VITE_SUPABASE_BUCKET_NAME || 'products';
-
+            // 2. Eliminar las imágenes del Storage de Supabase
             if (imageData && imageData.length > 0) {
-                if (STORAGE_METHOD === 'SUPABASE') {
-                    // Eliminar imágenes del bucket de Supabase
-                    for (const image of imageData) {
-                        const { error: deleteError } = await supabase.storage
-                            .from(SUPABASE_BUCKET_NAME)
-                            .remove([image.path]);
+                // Obtener todas las rutas de imágenes
+                const imagePaths = imageData.map(img => img.path).filter(Boolean);
 
-                        if (deleteError) {
-                            console.error('Error al eliminar imagen:', deleteError, image.path);
+                // Eliminar imágenes del storage en lotes para evitar sobrecarga
+                if (imagePaths.length > 0) {
+                    // Procesar eliminación en lotes de 10 imágenes
+                    for (let i = 0; i < imagePaths.length; i += 10) {
+                        const batch = imagePaths.slice(i, i + 10);
+                        const { error: deleteStorageError } = await supabase.storage
+                            .from(STORAGE_BUCKET)
+                            .remove(batch);
+
+                        if (deleteStorageError) {
+                            console.error('Error al eliminar imágenes:', deleteStorageError);
                         }
-                    }
-                } else {
-                    // Método S3 - Necesitarás implementar una llamada a tu backend
-                    // para eliminar las imágenes de S3
-                    try {
-                        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                        const imagePaths = imageData.map(img => img.path);
-
-                        await fetch(`${API_URL}/api/delete-images`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                paths: imagePaths
-                            })
-                        });
-                    } catch (err) {
-                        console.error('Error al eliminar imágenes de S3:', err);
                     }
                 }
             }
