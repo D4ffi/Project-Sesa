@@ -1,7 +1,7 @@
 // dashboard/src/pages/Warehouse/WarehouseDetailPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Edit, AlertTriangle, Plus } from 'lucide-react';
+import { ArrowLeft, Edit, AlertTriangle, Plus, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import Layout from "../../components/common/Layout.tsx";
 import EditWarehouseModal from "../../components/Warehouse/EditWareHouseModal.tsx";
@@ -9,6 +9,9 @@ import CRUDButton from "../../components/Productos/CrudButton.tsx";
 import AddInventoryModal from "../../components/Warehouse/AddInventoryModal.tsx";
 import WarehouseInventoryTable from "../../components/Warehouse/WarehouseInventoryTable.tsx";
 import EditInventoryModal from "../../components/Warehouse/EditInventoryModal.tsx";
+import InventoryEntryModal from "../../components/Warehouse/InventoryEntryModal.tsx";
+import InventoryExitModal from "../../components/Warehouse/InventoryExitModal.tsx";
+import WeatherWidget from "../../components/Dashboard/WeatherWidget.tsx";
 
 // Tipo de bodega sin el campo capacity
 type Warehouse = {
@@ -25,7 +28,7 @@ type InventoryItem = {
     id: number;
     warehouse_id: number;
     product_id: number;
-    stock_quantity: number;
+    stock: number;
     min_stock_level: number;
     max_stock_level: number | null;
     last_updated: string;
@@ -51,7 +54,12 @@ const WarehouseDetailPage: React.FC = () => {
     // Estados para el inventario
     const [isAddInventoryModalOpen, setIsAddInventoryModalOpen] = useState(false);
     const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | null>(null);
+    const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
     const [inventoryRefreshTrigger, setInventoryRefreshTrigger] = useState(0);
+
+    // Nuevos estados para modales de entrada y salida
+    const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+    const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
     // Obtener los datos de la bodega si no están en el estado de navegación
     useEffect(() => {
@@ -86,6 +94,29 @@ const WarehouseDetailPage: React.FC = () => {
     const handleEditSuccess = () => {
         fetchWarehouseData();
         setIsEditModalOpen(false);
+    };
+
+    // Manejador para el evento de entrada/salida exitosa
+    const handleInventoryUpdateSuccess = () => {
+        // Actualizar el inventario
+        setInventoryRefreshTrigger(prev => prev + 1);
+        // Limpiar el elemento seleccionado
+        setSelectedInventoryItem(null);
+    };
+
+    // Manejador para abrir el modal de entrada con producto preseleccionado
+    const handleOpenEntryModal = () => {
+        setIsEntryModalOpen(true);
+    };
+
+    // Manejador para abrir el modal de salida con producto preseleccionado
+    const handleOpenExitModal = () => {
+        setIsExitModalOpen(true);
+    };
+
+    // Manejador para la selección de un elemento de inventario
+    const handleSelectInventoryItem = (item: InventoryItem) => {
+        setSelectedInventoryItem(prev => prev?.id === item.id ? null : item);
     };
 
     // Formatear fecha para mostrar
@@ -208,7 +239,9 @@ const WarehouseDetailPage: React.FC = () => {
                                         <p className="text-gray-800">{formatDate(warehouse.created_at)}</p>
                                     </div>
 
-                                    {/* Aquí puedes agregar información adicional como inventario */}
+                                    <div className="mb-6">
+                                        <WeatherWidget useCurrentLocation={true} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -218,17 +251,48 @@ const WarehouseDetailPage: React.FC = () => {
                     <div className="p-6 border-t border-gray-200">
                         <div className="flex justify-between items-center mb-3">
                             <h2 className="text-lg font-semibold text-gray-700">Inventario</h2>
-                            <CRUDButton
-                                icon={Plus}
-                                label="Agregar producto al inventario"
-                                tooltip="Agregar producto al inventario"
-                                onClick={() => setIsAddInventoryModalOpen(true)}
-                            />
+                            <div className="flex space-x-2">
+                                {/* Botón de entrada */}
+                                <button
+                                    onClick={handleOpenEntryModal}
+                                    className="flex items-center bg-green-500 text-white px-3 py-2 rounded-md hover:bg-green-600 transition-colors"
+                                >
+                                    <ArrowDownCircle size={16} className="mr-1" /> Entrada
+                                </button>
+
+                                {/* Botón de salida */}
+                                <button
+                                    onClick={handleOpenExitModal}
+                                    className="flex items-center bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600 transition-colors"
+                                >
+                                    <ArrowUpCircle size={16} className="mr-1" /> Salida
+                                </button>
+
+                                {/* Botón existente */}
+                                <CRUDButton
+                                    icon={Plus}
+                                    label="Agregar producto"
+                                    tooltip="Agregar producto al inventario"
+                                    onClick={() => setIsAddInventoryModalOpen(true)}
+                                />
+                            </div>
                         </div>
+
+                        {/* Mostrar producto seleccionado si lo hay */}
+                        {selectedInventoryItem && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-sm text-blue-800">
+                                    Producto seleccionado: <strong>{selectedInventoryItem.product_name}</strong> (Stock actual: {selectedInventoryItem.stock})
+                                </p>
+                            </div>
+                        )}
+
                         <WarehouseInventoryTable
                             key={inventoryRefreshTrigger}
                             warehouseId={warehouse.id}
                             onEdit={item => setEditingInventoryItem(item)}
+                            onSelect={handleSelectInventoryItem}
+                            selectedItemId={selectedInventoryItem?.id}
                         />
                     </div>
                 </div>
@@ -269,6 +333,30 @@ const WarehouseDetailPage: React.FC = () => {
                         setInventoryRefreshTrigger(prev => prev + 1);
                         setEditingInventoryItem(null);
                     }}
+                />
+            )}
+
+            {/* Modal de Entrada de Inventario */}
+            {isEntryModalOpen && (
+                <InventoryEntryModal
+                    isOpen={isEntryModalOpen}
+                    onClose={() => setIsEntryModalOpen(false)}
+                    onSuccess={handleInventoryUpdateSuccess}
+                    warehouseId={warehouse.id}
+                    warehouseName={warehouse.name}
+                    selectedItem={selectedInventoryItem}
+                />
+            )}
+
+            {/* Modal de Salida de Inventario */}
+            {isExitModalOpen && (
+                <InventoryExitModal
+                    isOpen={isExitModalOpen}
+                    onClose={() => setIsExitModalOpen(false)}
+                    onSuccess={handleInventoryUpdateSuccess}
+                    warehouseId={warehouse.id}
+                    warehouseName={warehouse.name}
+                    selectedItem={selectedInventoryItem}
                 />
             )}
         </Layout>

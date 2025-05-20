@@ -59,29 +59,24 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
             setLoadingProducts(true);
             setError(null);
 
-            // Usando la misma estructura de consulta que en otros componentes
+            // Asegúrate de que esta consulta traiga todos los datos necesarios
             const { data, error } = await supabase
                 .from('products')
                 .select(`
-                    id, 
-                    name, 
-                    sku, 
-                    price,
-                    category_id,
-                    categories(id, name)
-                `)
+                id, 
+                name, 
+                sku, 
+                price,
+                category_id,
+                categories(id, name)
+            `)
                 .order('name', { ascending: true });
 
             if (error) throw error;
 
-            // Debugging - ayuda a ver exactamente qué estructura devuelve
-            console.log('Datos de productos:', data?.length);
+            console.log('Datos de productos:', data);
             if (data && data.length > 0) {
-                console.log('Primer producto muestra:', {
-                    id: data[0].id,
-                    name: data[0].name,
-                    category: data[0].categories
-                });
+                console.log('Ejemplo de producto:', data[0]);
             }
 
             setProducts((data || []) as Product[]);
@@ -169,14 +164,12 @@ const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
             // Preparar datos para insertar con tipos adecuados
             const insertData = {
                 warehouse_id: warehouseId,
-                product_id: productId,
+                product_id: parseInt(formData.product_id, 10),  // Asegúrate de que sea un número
                 stock: Number(formData.stock),
                 min_stock_level: Number(formData.min_stock_level),
                 max_stock_level: formData.max_stock_level === '' ? null : Number(formData.max_stock_level),
                 last_updated: new Date().toISOString()
             };
-
-            console.log('Datos a insertar:', insertData);
 
             // Insert new inventory record
             const { error: insertError } = await supabase

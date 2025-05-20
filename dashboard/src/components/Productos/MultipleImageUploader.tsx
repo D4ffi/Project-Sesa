@@ -1,6 +1,7 @@
-// dashboard/src/components/Productos/MultipleImageUploader.tsx
+// Corrección mejorada para dashboard/src/components/Productos/MultipleImageUploader.tsx
 import React, { useState } from 'react';
 import ImageUploader from './ImageUploader';
+import { Plus } from 'lucide-react';
 
 interface ProductImage {
     url: string;
@@ -15,9 +16,6 @@ interface MultipleImageUploaderProps {
     maxImages?: number;
 }
 
-/**
- * Componente para subir múltiples imágenes de producto
- */
 const MultipleImageUploader: React.FC<MultipleImageUploaderProps> = ({
                                                                          productId,
                                                                          onImagesChange,
@@ -26,6 +24,7 @@ const MultipleImageUploader: React.FC<MultipleImageUploaderProps> = ({
                                                                      }) => {
     const [images, setImages] = useState<ProductImage[]>(initialImages);
     const [error, setError] = useState<string | null>(null);
+    const [showUploader, setShowUploader] = useState<boolean>(false);
 
     // Manejador para cuando se sube una nueva imagen
     const handleImageUploaded = (url: string, path: string) => {
@@ -45,6 +44,9 @@ const MultipleImageUploader: React.FC<MultipleImageUploaderProps> = ({
 
         // Notificar al componente padre
         onImagesChange(newImages);
+
+        // Ocultar el uploader después de subir la imagen
+        setShowUploader(false);
 
         // Limpiar error
         setError(null);
@@ -86,53 +88,77 @@ const MultipleImageUploader: React.FC<MultipleImageUploaderProps> = ({
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Imágenes existentes */}
-                {images.map((image, index) => (
-                    <div key={index} className="border rounded-lg p-3">
-                        <img
-                            src={image.url}
-                            alt={`Imagen del producto ${index + 1}`}
-                            className="w-full h-32 object-contain mb-2"
-                        />
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input
-                                    type="radio"
-                                    id={`primary-${index}`}
-                                    name="primary-image"
-                                    checked={image.isPrimary}
-                                    onChange={() => handleSetPrimary(index)}
-                                    className="mr-2"
-                                />
-                                <label htmlFor={`primary-${index}`} className="text-xs">
-                                    Imagen principal
-                                </label>
+            {/* Imágenes subidas */}
+            {images.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    {images.map((image, index) => (
+                        <div key={index} className="border rounded-lg p-3">
+                            <img
+                                src={image.url}
+                                alt={`Imagen del producto ${index + 1}`}
+                                className="w-full h-32 object-contain mb-2"
+                            />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        id={`primary-${index}`}
+                                        name="primary-image"
+                                        checked={image.isPrimary}
+                                        onChange={() => handleSetPrimary(index)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor={`primary-${index}`} className="text-xs">
+                                        Imagen principal
+                                    </label>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveImage(index)}
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                >
+                                    Eliminar
+                                </button>
                             </div>
-
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="text-xs text-red-500 hover:text-red-700"
-                            >
-                                Eliminar
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+            )}
 
-                {/* Nuevo cargador - solo mostrar si no se ha alcanzado el límite */}
-                {images.length < maxImages && (
+            {/* Botón para mostrar el uploader + componente de subida */}
+            {!showUploader && images.length < maxImages ? (
+                <button
+                    type="button"
+                    onClick={() => setShowUploader(true)}
+                    className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 hover:border-orange-300 transition-colors"
+                >
+                    <Plus size={20} className="text-gray-400 mr-2" />
+                    <span className="text-gray-500">Agregar imagen {images.length + 1} de {maxImages}</span>
+                </button>
+            ) : showUploader && (
+                <div className="mt-4">
                     <ImageUploader
                         onImageUploaded={handleImageUploaded}
                         productId={productId}
+                        onRemove={() => setShowUploader(false)}
                     />
-                )}
-            </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowUploader(false)}
+                        className="text-sm text-gray-500 mt-2 hover:text-gray-700"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            )}
 
-            <div className="text-xs text-gray-500 mt-2">
-                {images.length} de {maxImages} imágenes cargadas
+            <div className="text-xs text-gray-500 flex justify-between mt-2">
+                <span>{images.length} de {maxImages} imágenes</span>
+                {images.length > 0 && (
+                    <span className="text-green-600">
+                        {images.findIndex(img => img.isPrimary) !== -1 ? "✓ Imagen principal seleccionada" : "⚠️ Selecciona una imagen principal"}
+                    </span>
+                )}
             </div>
         </div>
     );

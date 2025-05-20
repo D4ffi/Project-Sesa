@@ -1,17 +1,11 @@
 import {useRef, useState, useEffect} from 'react';
 import './NavBar.css'
-import { Menu, Search} from "lucide-react";
+import { Menu} from "lucide-react";
 import SideBar from "./SideBar.tsx";
 
 const Navbar = () => {
-    const [searchTerm, setSearchTerm] = useState('');
     const [sidebarState, setSidebarState] = useState('closed'); // 'closed', 'opening', 'open', 'closing'
     const sidebarRef = useRef<HTMLDivElement>(null);
-
-    const handleSearch = (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
-        console.log('Searching for:', searchTerm);
-    };
 
     const handleMenuClick = () => {
         setSidebarState('opening');
@@ -27,7 +21,7 @@ const Navbar = () => {
         // Cambiar a estado "closed" después de la duración de la animación
         setTimeout(() => {
             setSidebarState('closed');
-        }, 300); // 300ms debe coincidir con la duración de la transición
+        }, 300); // 300 ms debe coincidir con la duración de la transición
     };
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,26 +53,7 @@ const Navbar = () => {
                           onClick={handleMenuClick} />
                 </div>
 
-                {/* Middle section - Search bar */}
-                <div className="flex-1 max-w-[700px] mx-auto">
-                    <form onSubmit={handleSearch}>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search"
-                                className="w-full bg-gray-200 text-gray-700 placeholder-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            />
-                            <button
-                                type="submit"
-                                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                            >
-                                <Search size={20} className="text-gray-700 hover:text-[#ff6900] cursor-pointer transition-colors duration-300"/>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+
 
                 {/* Right section - Nav items */}
                 <div className="flex items-center space-x-2 pr-6">

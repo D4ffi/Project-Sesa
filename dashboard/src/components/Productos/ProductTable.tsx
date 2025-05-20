@@ -3,7 +3,7 @@ import { Edit, Trash2, CheckSquare, Square, ChevronUp, ChevronDown } from 'lucid
 import { supabase } from '../../utils/supabaseClient.ts';
 import EditProductModal from "./EditModal.tsx";
 import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
-import {STORAGE_BUCKET} from "../../utils/imageUtils.ts";
+import { STORAGE_BUCKET } from "../../utils/imageUtils.ts";
 
 // Product type based on your database schema
 type Product = {
@@ -14,9 +14,16 @@ type Product = {
     description: string;
     price: number;
     sku: string;
-    category_name?: string; // For display purposes, joined from categories table
-    dimensions?: string;    // Added dimensions field
-    material?: string;      // Added material field
+    category_name?: string;
+    dimensions?: string;
+    material?: string;
+};
+
+// Sorting options type
+type SortOption = {
+    field: keyof Product;
+    direction: 'asc' | 'desc';
+    label: string;
 };
 
 type SortDirection = 'asc' | 'desc';
@@ -28,23 +35,58 @@ const ProductTable: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    const [sortField, setSortField] = useState<SortField>(null);
+    const [sortField, setSortField] = useState<SortField>('name');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [searchTerm, setSearchTerm] = useState('');
 
-    // New state for delete confirmation modal
+    // New states for enhanced filtering
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+    const [sortOption, setSortOption] = useState<SortOption>({
+        field: 'name',
+        direction: 'asc',
+        label: 'Nombre (A-Z)'
+    });
+
+    // Predefined sorting options
+    const sortOptions: SortOption[] = [
+        { field: 'name', direction: 'asc', label: 'Nombre (A-Z)' },
+        { field: 'name', direction: 'desc', label: 'Nombre (Z-A)' },
+        { field: 'price', direction: 'asc', label: 'Precio (menor a mayor)' },
+        { field: 'price', direction: 'desc', label: 'Precio (mayor a menor)' },
+        { field: 'created_at', direction: 'desc', label: 'Más recientes primero' },
+        { field: 'created_at', direction: 'asc', label: 'Más antiguos primero' }
+    ];
+
+    // Delete confirmation modal state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    // Fetch products on component mount
+    // Fetch products and categories on component mount
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
+
+    // Fetch categories for filter dropdown
+    const fetchCategories = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('categories')
+                .select('id, name')
+                .order('name', { ascending: true });
+
+            if (error) throw error;
+            setCategories(data || []);
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
 
-            // Modificar la consulta para incluir el join con categorías
+            // Modify the query to include the join with categories
             const { data, error } = await supabase
                 .from('products')
                 .select(`
@@ -54,7 +96,7 @@ const ProductTable: React.FC = () => {
 
             if (error) throw error;
 
-            // Transformar los datos para incluir el nombre de la categoría
+            // Transform data to include category name
             const formattedData = data.map(product => ({
                 ...product,
                 category_name: product.categories ? product.categories.name : 'Sin categoría'
@@ -82,10 +124,10 @@ const ProductTable: React.FC = () => {
 
     // Handle select all
     const toggleSelectAll = () => {
-        if (selectedProductIds.length === products.length) {
+        if (selectedProductIds.length === getSortedAndFilteredProducts().length) {
             setSelectedProductIds([]);
         } else {
-            setSelectedProductIds(products.map(product => product.id));
+            setSelectedProductIds(getSortedAndFilteredProducts().map(product => product.id));
         }
     };
 
@@ -95,13 +137,11 @@ const ProductTable: React.FC = () => {
         setIsDeleteModalOpen(true);
     };
 
-    // Modificación de la función handleDeleteConfirmed en ProductTable.tsx
-
     const handleDeleteConfirmed = async () => {
         try {
             setLoading(true);
 
-            // 1. Primero recuperar las rutas de las imágenes de los productos a eliminar
+            // 1. First retrieve the image paths of the products to delete
             const { data: imageData, error: imageError } = await supabase
                 .from('product_images')
                 .select('id, path')
@@ -109,14 +149,14 @@ const ProductTable: React.FC = () => {
 
             if (imageError) throw imageError;
 
-            // 2. Eliminar las imágenes del Storage de Supabase
+            // 2. Delete images from Supabase Storage
             if (imageData && imageData.length > 0) {
-                // Obtener todas las rutas de imágenes
+                // Get all image paths
                 const imagePaths = imageData.map(img => img.path).filter(Boolean);
 
-                // Eliminar imágenes del storage en lotes para evitar sobrecarga
+                // Delete images from storage in batches to avoid overload
                 if (imagePaths.length > 0) {
-                    // Procesar eliminación en lotes de 10 imágenes
+                    // Process deletion in batches of 10 images
                     for (let i = 0; i < imagePaths.length; i += 10) {
                         const batch = imagePaths.slice(i, i + 10);
                         const { error: deleteStorageError } = await supabase.storage
@@ -124,13 +164,13 @@ const ProductTable: React.FC = () => {
                             .remove(batch);
 
                         if (deleteStorageError) {
-                            console.error('Error al eliminar imágenes:', deleteStorageError);
+                            console.error('Error deleting images:', deleteStorageError);
                         }
                     }
                 }
             }
 
-            // 3. Eliminar las entradas de product_images
+            // 3. Delete product_images entries
             const { error: deleteImagesError } = await supabase
                 .from('product_images')
                 .delete()
@@ -138,7 +178,7 @@ const ProductTable: React.FC = () => {
 
             if (deleteImagesError) throw deleteImagesError;
 
-            // 4. Finalmente eliminar los productos
+            // 4. Finally delete the products
             const { error: deleteProductsError } = await supabase
                 .from('products')
                 .delete()
@@ -178,7 +218,7 @@ const ProductTable: React.FC = () => {
         setSelectedProductIds([]);
     };
 
-    // Handle sorting
+    // Handle sorting when clicking table headers
     const handleSort = (field: keyof Product) => {
         if (sortField === field) {
             // Toggle direction if same field
@@ -188,40 +228,72 @@ const ProductTable: React.FC = () => {
             setSortField(field);
             setSortDirection('asc');
         }
+
+        // Also update sort option selector to match
+        const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+        const matchingOption = sortOptions.find(
+            opt => opt.field === field && opt.direction === (sortField === field ? newDirection : 'asc')
+        );
+
+        if (matchingOption) {
+            setSortOption(matchingOption);
+        }
+    };
+
+    // Handle sort option selection
+    const handleSortOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const [field, direction] = e.target.value.split('-') as [keyof Product, 'asc' | 'desc'];
+        const option = sortOptions.find(opt => opt.field === field && opt.direction === direction);
+
+        if (option) {
+            setSortOption(option);
+            setSortField(option.field);
+            setSortDirection(option.direction);
+        }
     };
 
     // Apply sorting and filtering
     const getSortedAndFilteredProducts = () => {
-        // First apply search filter
+        // First apply search and category filters
         let filteredProducts = products;
 
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
-            filteredProducts = products.filter(product =>
+            filteredProducts = filteredProducts.filter(product =>
                 product.name.toLowerCase().includes(term) ||
-                product.description.toLowerCase().includes(term) ||
-                product.sku.toLowerCase().includes(term) ||
-                (product.dimensions && product.dimensions.toLowerCase().includes(term)) ||
-                (product.material && product.material.toLowerCase().includes(term))
+                (product.description?.toLowerCase().includes(term)) ||
+                (product.sku?.toLowerCase().includes(term)) ||
+                (product.dimensions?.toLowerCase().includes(term)) ||
+                (product.material?.toLowerCase().includes(term))
+            );
+        }
+
+        // Apply category filter
+        if (selectedCategory !== null) {
+            filteredProducts = filteredProducts.filter(product =>
+                product.category_id === selectedCategory
             );
         }
 
         // Then apply sorting
-        if (sortField) {
-            return [...filteredProducts].sort((a, b) => {
-                if (sortField && a[sortField] !== undefined && b[sortField] !== undefined) {
-                    if (a[sortField] < b[sortField]) {
-                        return sortDirection === 'asc' ? -1 : 1;
-                    }
-                    if (a[sortField] > b[sortField]) {
-                        return sortDirection === 'asc' ? 1 : -1;
-                    }
-                }
-                return 0;
-            });
-        }
+        return [...filteredProducts].sort((a, b) => {
+            const aValue = a[sortField || 'name'];
+            const bValue = b[sortField || 'name'];
 
-        return filteredProducts;
+            // Handle undefined values
+            if (aValue === undefined && bValue === undefined) return 0;
+            if (aValue === undefined) return 1;
+            if (bValue === undefined) return -1;
+
+            // Compare according to sort direction
+            if (aValue < bValue) {
+                return sortDirection === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortDirection === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
     };
 
     // Format date for display
@@ -270,17 +342,53 @@ const ProductTable: React.FC = () => {
 
     return (
         <div className="w-full">
-            <div className="mb-4 flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                    <input
-                        type="text"
-                        placeholder="Buscar productos..."
-                        className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
+            <div className="mb-4 flex flex-col md:flex-row gap-4">
+                {/* Filter and Search Controls */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto md:flex-grow">
+                    {/* Search Input */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Buscar productos..."
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Category Filter */}
+                    <div>
+                        <select
+                            value={selectedCategory !== null ? selectedCategory : ''}
+                            onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        >
+                            <option value="">Todas las categorías</option>
+                            {categories.map(category => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Sort Options */}
+                    <div>
+                        <select
+                            value={`${sortOption.field}-${sortOption.direction}`}
+                            onChange={handleSortOptionChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        >
+                            {sortOptions.map((option, index) => (
+                                <option key={index} value={`${option.field}-${option.direction}`}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex space-x-2">
                     {selectedProductIds.length === 1 && (
                         <button
@@ -302,6 +410,11 @@ const ProductTable: React.FC = () => {
                 </div>
             </div>
 
+            {/* Results Counter */}
+            <div className="mb-4 text-sm text-gray-500">
+                Mostrando {getSortedAndFilteredProducts().length} de {products.length} productos
+            </div>
+
             {loading ? (
                 <div className="w-full flex justify-center p-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
@@ -317,7 +430,7 @@ const ProductTable: React.FC = () => {
                         <tr>
                             <th className="w-10 px-4 py-2 text-center">
                                 <button onClick={toggleSelectAll} className="focus:outline-none">
-                                    {selectedProductIds.length === products.length && products.length > 0 ? (
+                                    {selectedProductIds.length === getSortedAndFilteredProducts().length && getSortedAndFilteredProducts().length > 0 ? (
                                         <CheckSquare size={20} className="text-orange-500" />
                                     ) : (
                                         <Square size={20} className="text-gray-400" />

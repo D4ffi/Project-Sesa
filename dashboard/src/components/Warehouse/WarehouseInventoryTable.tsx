@@ -33,9 +33,17 @@ type SortField = keyof InventoryItem | null;
 interface WarehouseInventoryTableProps {
     warehouseId: number;
     onEdit: (item: InventoryItem) => void;
+    // Nuevas propiedades para la selección
+    onSelect?: (item: InventoryItem) => void;
+    selectedItemId?: number | null;
 }
 
-const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ warehouseId, onEdit }) => {
+const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({
+                                                                             warehouseId,
+                                                                             onEdit,
+                                                                             onSelect,
+                                                                             selectedItemId
+                                                                         }) => {
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -91,20 +99,29 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
             }
 
             // Transform data to include joined fields at the top level
-            // Transform data to include joined fields at the top level
             const formattedItems = data?.map(item => {
                 // Ensure products exists and is an array before trying to access properties
-                const product = Array.isArray(item.products) && item.products.length > 0
-                    ? item.products[0]
-                    : null;
+                const product = item.products;
+                if (!product) {
+                    return {
+                        ...item,
+                        product_name: 'Producto desconocido',
+                        product_sku: 'N/A',
+                        category_name: 'Sin categoría'
+                    };
+                }
 
-                const productName = product?.name || 'Producto desconocido';
-                const productSku = product?.sku || 'N/A';
+                const productName = product.name || 'Producto desconocido';
+                const productSku = product.sku || 'N/A';
 
                 // Handle potentially nested category data
                 let categoryName = 'Sin categoría';
-                if (product?.categories && Array.isArray(product.categories) && product.categories.length > 0) {
-                    categoryName = product.categories[0]?.name || 'Sin categoría';
+                if (product.categories) {
+                    if (Array.isArray(product.categories)) {
+                        categoryName = product.categories[0]?.name || 'Sin categoría';
+                    } else {
+                        categoryName = product.categories.name || 'Sin categoría';
+                    }
                 }
 
                 return {
@@ -114,7 +131,7 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                     category_name: categoryName,
                     // Add the proper product structure for InventoryItem type compatibility
                     products: {
-                        id: product?.id || 0,
+                        id: product.id || 0,
                         name: productName,
                         sku: productSku,
                         categories: categoryName !== 'Sin categoría' ? { name: categoryName } : undefined
@@ -184,6 +201,13 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
     // Edit an inventory item
     const handleEditItem = (item: InventoryItem) => {
         onEdit(item);
+    };
+
+    // Select an item (for entry/exit modals)
+    const handleSelectItem = (item: InventoryItem) => {
+        if (onSelect) {
+            onSelect(item);
+        }
     };
 
     // Handle sorting
@@ -378,12 +402,15 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                                             key={item.id}
                                             className={`border-t border-gray-200 hover:bg-gray-50 ${
                                                 selectedItemIds.includes(item.id) ? 'bg-orange-50' : ''
-                                            }`}
+                                            } ${selectedItemId === item.id ? 'bg-blue-50' : ''} cursor-pointer`}
+                                            onClick={() => handleSelectItem(item)}
                                         >
                                             {/* Celda de checkbox centrada */}
-                                            <td className="px-4 py-2 text-center">
+                                            <td className="px-4 py-2 text-center" onClick={(e) => {
+                                                e.stopPropagation(); // Evita el clic en la fila completa
+                                                toggleItemSelection(item.id)
+                                            }}>
                                                 <button
-                                                    onClick={() => toggleItemSelection(item.id)}
                                                     className="focus:outline-none"
                                                 >
                                                     {selectedItemIds.includes(item.id) ? (
@@ -399,15 +426,15 @@ const WarehouseInventoryTable: React.FC<WarehouseInventoryTableProps> = ({ wareh
                                             <td className="px-4 py-2 text-center">{item.product_sku}</td>
                                             <td className="px-4 py-2 text-center">{item.category_name}</td>
                                             <td className="px-4 py-2 text-center">
-                        <span className={`${
-                            isStockLow(item)
-                                ? 'text-red-600 font-medium'
-                                : isStockHigh(item)
-                                    ? 'text-yellow-600 font-medium'
-                                    : ''
-                        }`}>
-                            {item.stock}
-                        </span>
+                                                <span className={`${
+                                                    isStockLow(item)
+                                                        ? 'text-red-600 font-medium'
+                                                        : isStockHigh(item)
+                                                            ? 'text-yellow-600 font-medium'
+                                                            : ''
+                                                }`}>
+                                                    {item.stock}
+                                                </span>
                                             </td>
                                             <td className="px-4 py-2 text-center">{item.min_stock_level}</td>
                                             <td className="px-4 py-2 text-center">{item.max_stock_level !== null ? item.max_stock_level : '-'}</td>
