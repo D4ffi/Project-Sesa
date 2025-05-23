@@ -1,4 +1,4 @@
-// dashboard/src/components/Productos/EditModal.tsx
+// dashboard/src/components/Productos/EditModal.tsx - VERSIÓN CORREGIDA
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
@@ -279,193 +279,193 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-lg font-semibold text-gray-800">Editar Producto</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                    >
-                        <X size={20} />
-                    </button>
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-lg font-semibold text-gray-800">Editar Producto</h2>
+                <button
+                    onClick={onClose}
+                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                    <X size={20} />
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-4">
+                {error && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {error}
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Información del Producto */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-700 border-b pb-2">Información del Producto</h3>
+
+                        <div className="mb-4">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                required
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                                Descripción
+                            </label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            ></textarea>
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
+                                Categoría <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                id="category_id"
+                                name="category_id"
+                                value={formData.category_id}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                required
+                            >
+                                <option value="">Seleccionar categoría</option>
+                                {categories.map(category => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                                Precio <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                                <input
+                                    type="number"
+                                    id="price"
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    step="0.01"
+                                    min="0.01"
+                                    className="w-full pl-7 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
+                                SKU
+                            </label>
+                            <input
+                                type="text"
+                                id="sku"
+                                name="sku"
+                                value={formData.sku}
+                                onChange={handleChange}
+                                placeholder="Opcional"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700 mb-1">
+                                Dimensiones
+                            </label>
+                            <input
+                                type="text"
+                                id="dimensions"
+                                name="dimensions"
+                                value={formData.dimensions}
+                                onChange={handleChange}
+                                placeholder="Ejemplo: 10x15x5 cm (Opcional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">
+                                Material
+                            </label>
+                            <input
+                                type="text"
+                                id="material"
+                                name="material"
+                                value={formData.material}
+                                onChange={handleChange}
+                                placeholder="Ejemplo: Algodón, Cerámica, etc. (Opcional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Imágenes del Producto */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-700 border-b pb-2">Imágenes del Producto</h3>
+
+                        {imagesLoading ? (
+                            <div className="flex justify-center items-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                            </div>
+                        ) : (
+                            <MultipleImageUploader
+                                productId={product.id}
+                                initialImages={productImages}
+                                onImagesChange={handleImagesChange}
+                                maxImages={5}
+                            />
+                        )}
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4">
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Información del Producto */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-gray-700 border-b pb-2">Información del Producto</h3>
-
-                            <div className="mb-4">
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nombre <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    required
-                                />
+                <div className="flex justify-end space-x-3 mt-6 border-t pt-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {loading ? (
+                            <div className="flex items-center">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Guardando...
                             </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Descripción
-                                </label>
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                ></textarea>
-                            </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Categoría <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    id="category_id"
-                                    name="category_id"
-                                    value={formData.category_id}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    required
-                                >
-                                    <option value="">Seleccionar categoría</option>
-                                    {categories.map(category => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Precio <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
-                                    <input
-                                        type="number"
-                                        id="price"
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        step="0.01"
-                                        min="0.01"
-                                        className="w-full pl-7 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
-                                    SKU
-                                </label>
-                                <input
-                                    type="text"
-                                    id="sku"
-                                    name="sku"
-                                    value={formData.sku}
-                                    onChange={handleChange}
-                                    placeholder="Opcional"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones
-                                </label>
-                                <input
-                                    type="text"
-                                    id="dimensions"
-                                    name="dimensions"
-                                    value={formData.dimensions}
-                                    onChange={handleChange}
-                                    placeholder="Ejemplo: 10x15x5 cm (Opcional)"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Material
-                                </label>
-                                <input
-                                    type="text"
-                                    id="material"
-                                    name="material"
-                                    value={formData.material}
-                                    onChange={handleChange}
-                                    placeholder="Ejemplo: Algodón, Cerámica, etc. (Opcional)"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Imágenes del Producto */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-gray-700 border-b pb-2">Imágenes del Producto</h3>
-
-                            {imagesLoading ? (
-                                <div className="flex justify-center items-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                                </div>
-                            ) : (
-                                <MultipleImageUploader
-                                    productId={product.id}
-                                    initialImages={productImages}
-                                    onImagesChange={handleImagesChange}
-                                    maxImages={5}
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end space-x-3 mt-6 border-t pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <div className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Guardando...
-                                </div>
-                            ) : 'Guardar cambios'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        ) : 'Guardar cambios'}
+                    </button>
+                </div>
+            </form>
         </div>
-    );
+    </div>
+);
 };
 
 export default EditProductModal;
